@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperMarket POS - Dashboard</title>
+    <!-- Hum Inter font aur Icons link kar rahe hain -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+
+    <div class="dashboard-wrapper">
+        <!-- 1. Sidebar: Left Side Menu -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-shopping-basket"></i>
+                <span>SuperMarket</span>
+            </div>
+            
+            <nav class="nav-links">
+                <a href="/dashboard" class="nav-item active"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="#" class="nav-item"><i class="fas fa-box"></i> Products</a>
+                <a href="#" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+                <a href="#" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="/"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+
+        <!-- 2. Main Content: Right Side Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <h2>Welcome back, Admin</h2>
+                <button class="btn-new-trx">+ New Transaction</button>
+            </header>
+
+            <!-- Stats Cards (Chote dabbe summary ke liye) -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <p>Total Products</p>
+                    <h3>4,285</h3>
+                </div>
+                <div class="stat-card">
+                    <p>Total Sales Today</p>
+                    <h3>$12,450</h3>
+                </div>
+                <div class="stat-card blue-card">
+                    <p>Active Terminal</p>
+                    <h3>Terminal 04</h3>
+                </div>
+            </div>
+
+            <!-- Recent Activity Table -->
+            <div class="recent-section">
+                <h3>Recent Transactions</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>#8821</td><td>Guest Customer</td><td>$142.00</td><td><span class="status-done">Completed</span></td></tr>
+                        <tr><td>#8820</td><td>Member #4412</td><td>$89.50</td><td><span class="status-done">Completed</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
