@@ -18,6 +18,31 @@ def dashboard():
     return render_template('dashboard.html')
 
 
+
+
+
+# Page 3: Products Management Route
+@app.route('/products')
+def products():
+    return render_template('products.html')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 

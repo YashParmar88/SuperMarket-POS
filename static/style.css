@@ -182,3 +182,122 @@ body.login-page {
     border-radius: 4px;
     font-size: 13px;
 }
+
+
+
+
+
+/* --- Products Page Grid Layout --- */
+/* --- Products Page Workspace Styles --- */
+
+/* Grid layout to keep Form on left and Table on right */
+.products-layout-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr; /* Fixed width for form, flexible for table */
+    gap: 25px;
+    margin-top: 25px;
+}
+
+/* Styling for both Form and Table container cards */
+.data-card {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Soft shadow for modern look */
+}
+
+/* Space between input fields in the form */
+.form-field {
+    margin-bottom: 15px;
+}
+
+.form-field label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #424752;
+}
+
+.form-field input, .form-field select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #c2c6d4;
+    border-radius: 8px;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Horizontal row for Price and Stock inputs */
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+/* Main action button styling */
+.btn-save-data {
+    width: 100%;
+    background: #003f87;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-save-data:hover {
+    background: #0056b3;
+}
+
+/* Product inventory table styling */
+.inventory-display-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.inventory-display-table th {
+    background: #e7f1ff; /* Light blue header for contrast */
+    padding: 12px;
+    text-align: left;
+    font-size: 14px;
+    color: #003f87;
+}
+
+.inventory-display-table td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #f0eded;
+}
+
+/* Visual tags for category and low stock status */
+.type-tag {
+    background: #f0f4f8;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.low-stock-alert {
+    color: #ba1a1a; /* Red color for low stock warnings */
+    font-weight: 700;
+}
+
+/* Top search container styling */
+.search-container {
+    background: white;
+    padding: 8px 20px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #ddd;
+    width: fit-content;
+}
+
+.search-container input {
+    border: none;
+    outline: none;
+    width: 250px;
+}

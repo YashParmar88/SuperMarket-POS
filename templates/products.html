@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperMarket - Products Management</title>
+    <!-- Standard fonts and icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Link to your CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+
+    <div class="dashboard-wrapper">
+        <!-- 1. Sidebar Section (Left) -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-shopping-basket"></i>
+                <span>SuperMarket</span>
+            </div>
+            
+            <nav class="nav-links">
+                <!-- Navigation links matching your Dashboard style -->
+                <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="/products" class="nav-item active"><i class="fas fa-box"></i> Products</a>
+                <a href="#" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+                <a href="#" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="/"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+
+        <!-- 2. Main Content Section (Right) -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-info">
+                    <h2>Products Management</h2>
+                    <p>Manage your inventory levels</p>
+                </div>
+                <!-- Search bar for products -->
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search product catalog...">
+                </div>
+            </header>
+
+            <div class="products-layout-grid">
+                <!-- Left: Form to Add New Product -->
+                <div class="data-card">
+                    <h3><i class="fas fa-plus-circle"></i> Add New Product</h3>
+                    <form class="entry-form">
+                        <div class="form-field">
+                            <label>Product Name</label>
+                            <input type="text" placeholder="e.g. Organic Milk 1L">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>Price ($)</label>
+                                <input type="number" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="form-field">
+                                <label>Stock Qty</label>
+                                <input type="number" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label>Category</label>
+                            <select>
+                                <option>Dairy & Eggs</option>
+                                <option>Fruits & Veggies</option>
+                                <option>Bakery Items</option>
+                                <option>Snacks</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn-save-data">Save Product</button>
+                    </form>
+                </div>
+
+                <!-- Right: Product Inventory Table -->
+                <div class="data-card">
+                    <h3>Current Inventory</h3>
+                    <table class="inventory-display-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Demo data for your presentation -->
+                            <tr>
+                                <td>Whole Milk 1L</td>
+                                <td><span class="type-tag">Dairy</span></td>
+                                <td>$4.50</td>
+                                <td class="low-stock-alert">12 (Low)</td>
+                                <td><i class="fas fa-edit action-icon"></i></td>
+                            </tr>
+                            <tr>
+                                <td>Brown Bread</td>
+                                <td><span class="type-tag">Bakery</span></td>
+                                <td>$2.20</td>
+                                <td>85</td>
+                                <td><i class="fas fa-edit action-icon"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
