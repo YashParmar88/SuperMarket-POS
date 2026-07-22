@@ -36,7 +36,11 @@ def products():
 
 
 
-
+# Route to display the Billing Counter page
+@app.route('/billing')
+def billing():
+    # This renders the billing.html template
+    return render_template('billing.html')
 
 
 

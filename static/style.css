@@ -301,3 +301,82 @@ body.login-page {
     outline: none;
     width: 250px;
 }
+
+
+
+
+
+/* --- Billing Counter Styles --- */
+
+.billing-container {
+    display: grid;
+    grid-template-columns: 1fr 400px; /* Left takes more space, Right is fixed for bill */
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.search-section {
+    display: flex;
+    gap: 10px;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.search-section input {
+    flex: 1;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 6px;
+    outline: none;
+}
+
+.quick-products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.p-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: 0.3s;
+}
+
+.p-card:hover { border-color: #003f87; }
+
+.bill-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    height: fit-content;
+}
+
+.bill-table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+.bill-table th { text-align: left; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; font-size: 14px; }
+.bill-table td { padding: 10px 0; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
+
+.bill-summary {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px dashed #eee;
+}
+
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.grand-total { font-size: 20px; color: #003f87; font-weight: 700; border-top: 1px solid #eee; padding-top: 10px; }
+
+.bill-actions { display: grid; gap: 10px; margin-top: 20px; }
+.btn-print { background: #6c757d; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; }
+.btn-complete { background: #28a745; color: white; border: none; padding: 15px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 16px; }
