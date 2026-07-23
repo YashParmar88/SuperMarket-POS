@@ -31,6 +31,18 @@ def products():
 
 
 
+# Route to display the Sales History page
+@app.route('/history')
+def history():
+    # This renders the history.html template
+    return render_template('history.html')
+
+
+
+
+
+
+
 
 
 

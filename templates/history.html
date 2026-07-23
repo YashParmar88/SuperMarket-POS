@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperMarket - Sales History</title>
+    <!-- Standard fonts and icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-shopping-basket"></i>
+                <span>SuperMarket</span>
+            </div>
+            <nav class="nav-links">
+                <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
+                <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+                <a href="/history" class="nav-item active"><i class="fas fa-history"></i> Sales History</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-info">
+                    <h2>Sales History</h2>
+                    <p>Review and track all past transactions</p>
+                </div>
+                <div class="header-buttons">
+                    <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+                    <button class="btn-outline"><i class="fas fa-download"></i> Export CSV</button>
+                </div>
+            </header>
+
+            <!-- Sales Summary Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <p>Total Sales (Today)</p>
+                    <h3>$12,480.00</h3>
+                </div>
+                <div class="stat-card">
+                    <p>Average Ticket</p>
+                    <h3>$42.15</h3>
+                </div>
+                <div class="stat-card">
+                    <p>Bills Generated</p>
+                    <h3>296</h3>
+                </div>
+            </div>
+
+            <!-- Transactions Table Card -->
+            <div class="history-table-card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Bill No.</th>
+                            <th>Customer Name</th>
+                            <th>Date & Time</th>
+                            <th>Payment</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Mock data rows for presentation -->
+                        <tr>
+                            <td>#INV-8821</td>
+                            <td>Guest Customer</td>
+                            <td>Oct 24, 2023 | 02:45 PM</td>
+                            <td><span class="pay-badge cash">CASH</span></td>
+                            <td><strong>$142.50</strong></td>
+                            <td><button class="btn-view-small">View</button></td>
+                        </tr>
+                        <tr>
+                            <td>#INV-8820</td>
+                            <td>Elena Gilbert</td>
+                            <td>Oct 24, 2023 | 02:12 PM</td>
+                            <td><span class="pay-badge card">VISA</span></td>
+                            <td><strong>$28.99</strong></td>
+                            <td><button class="btn-view-small">View</button></td>
+                        </tr>
+                        <tr>
+                            <td>#INV-8819</td>
+                            <td>Stefan Salvatore</td>
+                            <td>Oct 24, 2023 | 01:55 PM</td>
+                            <td><span class="pay-badge digital">WALLET</span></td>
+                            <td><strong>$1,205.00</strong></td>
+                            <td><button class="btn-view-small">View</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
