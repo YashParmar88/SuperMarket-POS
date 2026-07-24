@@ -17,6 +17,16 @@
             <p>Sign in to manage your branch operations</p>
         </div>
         <div class="login-card">
+ <!-- Insert this between Line 19 and Line 20 -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div style="color: #ba1a1a; background: #ffdad6; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 14px; font-weight: 600; border: 1px solid #ffb4ab;">
+        <i class="fas fa-exclamation-circle"></i> {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
             <form action="/login_process" method="POST">
                 <div class="form-group">
                     <label>Username</label>
