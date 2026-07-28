@@ -107,11 +107,21 @@ def add_product():
     return redirect(url_for('products'))
 
 # Page 4: Billing Counter Route (Protected)
+# Updated Page 4: Billing Counter Route to fetch real products
 @app.route('/billing')
 def billing():
+    # Security check: Redirect to login if session is empty
     if 'user' not in session:
         return redirect(url_for('login'))
-    return render_template('billing.html')
+    
+    # Connect to database to get current items
+    conn = get_db_connection()
+    # Fetching all products to show as clickable cards
+    db_products = conn.execute('SELECT * FROM products').fetchall()
+    conn.close()
+    
+    # Passing the product list to the billing.html page
+    return render_template('billing.html', products=db_products)
 
 # Page 5: Sales History Route (Protected)
 @app.route('/history')

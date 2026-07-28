@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperMarket - Billing Counter</title>
-    <!-- Standard fonts and icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -12,7 +11,7 @@
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- Sidebar Navigation -->
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-shopping-basket"></i>
@@ -25,7 +24,7 @@
                 <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
             </nav>
             <div class="sidebar-footer">
-                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </aside>
 
@@ -33,71 +32,66 @@
         <main class="main-content">
             <header class="top-header">
                 <h2>Billing Counter</h2>
-                <div class="invoice-info">
-                    <span>Invoice: <strong>#INV-2024-001</strong></span>
-                </div>
+                <span>Invoice: <strong>#INV-2024-001</strong></span>
             </header>
 
+            <!-- Matches .billing-container in your CSS -->
             <div class="billing-container">
-                <!-- Left: Product Selection Area -->
-                <div class="billing-left">
+                
+                <!-- Left Section: Search and Products -->
+                <div class="selection-area">
                     <div class="search-section">
                         <input type="text" placeholder="Scan barcode or type product name...">
-                        <button class="btn-search"><i class="fas fa-search"></i></button>
+                        <i class="fas fa-search" style="color: #94a3b8; padding-top: 10px;"></i>
                     </div>
 
                     <div class="quick-products-grid">
-                        <!-- Example product cards for fast selection -->
-                        <div class="p-card">
-                            <p>Whole Milk</p>
-                            <strong>$2.50</strong>
+                        {% for item in products %}
+                        <div class="p-card" onclick="alert('Added: {{ item['name'] }}')">
+                            <p>{{ item['name'] }}</p>
+                            <strong>${{ item['price'] }}</strong>
+                            <br>
+                            <small style="color: #64748b;">Stock: {{ item['stock'] }}</small>
                         </div>
-                        <div class="p-card">
-                            <p>Fresh Bread</p>
-                            <strong>$1.80</strong>
-                        </div>
-                        <div class="p-card">
-                            <p>Apples 1kg</p>
-                            <strong>$4.00</strong>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
 
-                <!-- Right: Current Bill / Cart Area -->
-                <div class="billing-right">
-                    <div class="bill-card">
-                        <h3>Current Bill</h3>
-                        <table class="bill-table">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Qty</th>
-                                    <th>Price</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Whole Milk</td>
-                                    <td>2</td>
-                                    <td>$2.50</td>
-                                    <td>$5.00</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Right Section: The Bill (Matches .bill-card in your CSS) -->
+                <div class="bill-card">
+                    <h3>Current Bill</h3>
+                    <table class="bill-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Demo Row -->
+                            <tr>
+                                <td>Whole Milk</td>
+                                <td>2</td>
+                                <td>$2.50</td>
+                                <td>$5.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-                        <div class="bill-summary">
-                            <div class="summary-row"><span>Subtotal:</span> <strong>$5.00</strong></div>
-                            <div class="summary-row"><span>Tax (5%):</span> <strong>$0.25</strong></div>
-                            <div class="summary-row grand-total"><span>Grand Total:</span> <strong>$5.25</strong></div>
-                        </div>
+                    <div class="bill-summary">
+                        <div class="summary-row"><span>Subtotal:</span> <strong>$5.00</strong></div>
+                        <div class="summary-row"><span>Tax (5%):</span> <strong>$0.25</strong></div>
+                        <div class="summary-row grand-total"><span>Grand Total:</span> <strong>$5.25</strong></div>
+                    </div>
 
-                        <div class="bill-actions">
-                            <button class="btn-print"><i class="fas fa-print"></i> Print Receipt</button>
-                            <button class="btn-complete">Generate Bill <i class="fas fa-check"></i></button>
-                        </div>
+                    <div class="bill-actions">
+                        <button class="btn-print"><i class="fas fa-print"></i> Print Receipt</button>
+                        <button class="btn-complete">Generate Bill <i class="fas fa-check"></i></button>
                     </div>
                 </div>
+
             </div>
         </main>
     </div>
