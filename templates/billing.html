@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperMarket - Billing Counter</title>
+    <!-- External fonts and icon libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Link to global stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- Sidebar -->
+        <!-- 1. Sidebar Section -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-shopping-basket"></i>
@@ -28,28 +30,27 @@
             </div>
         </aside>
 
-        <!-- Main Workspace -->
+        <!-- 2. Main Billing Workspace -->
         <main class="main-content">
             <header class="top-header">
                 <h2>Billing Counter</h2>
                 <span>Invoice: <strong>#INV-2024-001</strong></span>
             </header>
 
-            <!-- Matches .billing-container in your CSS -->
             <div class="billing-container">
                 
-                <!-- Left Section: Search and Products -->
+                <!-- Left Section: Search and Product Selection -->
                 <div class="selection-area">
                     <div class="search-section">
-                        <input type="text" placeholder="Scan barcode or type product name...">
+                        <input type="text" placeholder="Search products...">
                         <i class="fas fa-search" style="color: #94a3b8; padding-top: 10px;"></i>
                     </div>
 
                     <div class="quick-products-grid">
                         {% for item in products %}
-                        <div class="p-card" onclick="alert('Added: {{ item['name'] }}')">
-                            <p>{{ item['name'] }}</p>
-                            <strong>${{ item['price'] }}</strong>
+                        <div class="p-card" onclick="addToBill('{{ item['name'] }}', {{ item['price'] }})">
+                            <p><strong>{{ item['name'] }}</strong></p>
+                            <span style="color: #003f87; font-weight: bold;">${{ item['price'] }}</span>
                             <br>
                             <small style="color: #64748b;">Stock: {{ item['stock'] }}</small>
                         </div>
@@ -57,33 +58,34 @@
                     </div>
                 </div>
 
-                <!-- Right Section: The Bill (Matches .bill-card in your CSS) -->
+                <!-- Right Section: Current Billing Summary -->
                 <div class="bill-card">
                     <h3>Current Bill</h3>
                     <table class="bill-table">
                         <thead>
                             <tr>
                                 <th>Item</th>
-                                <th>Qty</th>
-                                <th>Price</th>
+                                <th style="text-align: center;">Qty</th>
                                 <th>Total</th>
+                                <th></th> <!-- Column for delete icon -->
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Demo Row -->
-                            <tr>
-                                <td>Whole Milk</td>
-                                <td>2</td>
-                                <td>$2.50</td>
-                                <td>$5.00</td>
-                            </tr>
-                        </tbody>
+                        <tbody id="bill-body"></tbody>
                     </table>
 
                     <div class="bill-summary">
-                        <div class="summary-row"><span>Subtotal:</span> <strong>$5.00</strong></div>
-                        <div class="summary-row"><span>Tax (5%):</span> <strong>$0.25</strong></div>
-                        <div class="summary-row grand-total"><span>Grand Total:</span> <strong>$5.25</strong></div>
+                        <div class="summary-row">
+                            <span>Subtotal:</span> 
+                            <strong id="subtotal">$0.00</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>Tax (5%):</span> 
+                            <strong id="tax-amount">$0.00</strong>
+                        </div>
+                        <div class="summary-row grand-total">
+                            <span>Grand Total:</span> 
+                            <strong id="grand-total">$0.00</strong>
+                        </div>
                     </div>
 
                     <div class="bill-actions">
@@ -95,5 +97,77 @@
             </div>
         </main>
     </div>
+
+    <!-- 3. Billing Logic Engine (JavaScript) -->
+    <script>
+        let cart = [];
+
+        // Function to add an item
+        function addToBill(name, price) {
+            let existingItem = cart.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.qty += 1;
+            } else {
+                cart.push({ name: name, price: price, qty: 1 });
+            }
+            updateBillUI();
+        }
+
+        // NEW: Function to change quantity (+1 or -1)
+        function changeQty(name, amount) {
+            let item = cart.find(i => i.name === name);
+            if (item) {
+                item.qty += amount;
+                // If qty reaches 0, remove item
+                if (item.qty <= 0) {
+                    removeFromCart(name);
+                }
+            }
+            updateBillUI();
+        }
+
+        // NEW: Function to remove item completely
+        function removeFromCart(name) {
+            cart = cart.filter(i => i.name !== name);
+            updateBillUI();
+        }
+
+        function updateBillUI() {
+            const billBody = document.getElementById('bill-body');
+            billBody.innerHTML = '';
+            let subtotal = 0;
+
+            cart.forEach((item) => {
+                let itemTotal = item.price * item.qty;
+                subtotal += itemTotal;
+
+                // Added Qty Controls (+ / - buttons) and Delete icon
+                billBody.innerHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td style="text-align: center;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <button onclick="changeQty('${item.name}', -1)" style="cursor:pointer; width: 22px; height: 22px; border-radius: 4px; border: 1px solid #ddd;">-</button>
+                                <span>${item.qty}</span>
+                                <button onclick="changeQty('${item.name}', 1)" style="cursor:pointer; width: 22px; height: 22px; border-radius: 4px; border: 1px solid #ddd;">+</button>
+                            </div>
+                        </td>
+                        <td>$${itemTotal.toFixed(2)}</td>
+                        <td>
+                            <i class="fas fa-trash-alt" style="color: #ba1a1a; cursor: pointer;" onclick="removeFromCart('${item.name}')"></i>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            let tax = subtotal * 0.05;
+            let grandTotal = subtotal + tax;
+
+            document.getElementById('subtotal').innerText = `$${subtotal.toFixed(2)}`;
+            document.getElementById('tax-amount').innerText = `$${tax.toFixed(2)}`;
+            document.getElementById('grand-total').innerText = `$${grandTotal.toFixed(2)}`;
+        }
+    </script>
+
 </body>
 </html>

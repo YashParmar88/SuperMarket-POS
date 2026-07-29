@@ -432,3 +432,39 @@ body.login-page {
     display: flex;
     align-items: center;
 }
+
+
+
+/* --- Cart Qty Controls Design --- */
+.qty-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-qty {
+    background: #e2e8f0;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-qty:hover {
+    background: #cbd5e1;
+}
+
+.delete-icon {
+    color: #ef4444; /* Red color for delete */
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.delete-icon:hover {
+    color: #b91c1c;
+}
