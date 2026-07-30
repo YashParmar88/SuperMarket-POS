@@ -90,7 +90,7 @@
 
                     <div class="bill-actions">
                         <button class="btn-print"><i class="fas fa-print"></i> Print Receipt</button>
-                        <button class="btn-complete">Generate Bill <i class="fas fa-check"></i></button>
+                        <button class="btn-complete" onclick="generateBill()">Generate Bill <i class="fas fa-check"></i></button>
                     </div>
                 </div>
 
@@ -167,6 +167,48 @@
             document.getElementById('tax-amount').innerText = `$${tax.toFixed(2)}`;
             document.getElementById('grand-total').innerText = `$${grandTotal.toFixed(2)}`;
         }
+// Function to send cart data to the Python backend
+function generateBill() {
+    // 1. Validation: Check if the cart has items
+    if (cart.length === 0) {
+        alert("Your cart is empty! Please add products first.");
+        return;
+    }
+
+    // 2. Data Preparation: Get the grand total value from the screen
+    // We remove the '$' sign and convert string to a number
+    let totalText = document.getElementById('grand-total').innerText.replace('$', '');
+    let totalValue = parseFloat(totalText);
+
+    // 3. Network Request: Use Fetch API to send data to /save_bill route
+    fetch('/save_bill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ total: totalValue }) // Packing data into JSON format
+    })
+    .then(response => response.json()) // Waiting for Python's response
+    .then(data => {
+        if (data.success) {
+            // 4. Success Handling: Clear the cart and update the screen
+            alert("Success: " + data.message);
+            cart = []; // Empty the cart array
+            updateBillUI(); // Refresh the table and totals to $0.00
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("Something went wrong while saving the bill.");
+    });
+}
+
+
+
+
+
+
+
     </script>
 
 </body>
