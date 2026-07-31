@@ -120,18 +120,32 @@ def save_bill():
     return {"success": True, "message": "Bill generated successfully!"}
 
 # Page 5: Sales History Route (Protected)
+# Updated Page 5: Sales History Route to fetch real transactions
 @app.route('/history')
 def history():
+    # Security check: Ensure admin is logged in
     if 'user' not in session:
         return redirect(url_for('login'))
-    return render_template('history.html')
+    
+    conn = get_db_connection()
+    # Fetch all records from 'sales' table, sorted by latest first
+    all_sales = conn.execute('SELECT * FROM sales ORDER BY id DESC').fetchall()
+    
+    # Simple calculation for summary cards
+    total_revenue = 0
+    for sale in all_sales:
+        total_revenue += sale['total_amount']
+    
+    bill_count = len(all_sales)
+    conn.close()
+    
+    # Passing data and counts to the HTML template
+    return render_template('history.html', sales=all_sales, total=total_revenue, count=bill_count)
 
-# Route to logout and clear session
-@app.route('/logout')
-def logout():
-    session.pop('user', None) 
-    flash("You have been logged out successfully.")
-    return redirect(url_for('login'))
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
