@@ -58,11 +58,27 @@ def login_process():
         return redirect(url_for('login'))
 
 # Page 2: Dashboard Route (Protected)
+# Updated Page 2: Dashboard Route to show real-time statistics
 @app.route('/dashboard')
 def dashboard():
+    # Security: Redirect to login if user is not in session
     if 'user' not in session:
         return redirect(url_for('login'))
-    return render_template('dashboard.html')
+
+    conn = get_db_connection()
+    
+    # 1. Fetch total count of products in the inventory
+    product_stats = conn.execute('SELECT COUNT(*) FROM products').fetchone()
+    total_products = product_stats[0] if product_stats else 0
+    
+    # 2. Fetch total sum of all sales generated so far
+    sales_stats = conn.execute('SELECT SUM(total_amount) FROM sales').fetchone()
+    total_sales = sales_stats[0] if sales_stats[0] is not None else 0.0
+    
+    conn.close()
+
+    # Pass the calculated stats to the dashboard template
+    return render_template('dashboard.html', p_count=total_products, s_sum=total_sales)
 
 # Page 3: Products Management Route (Protected)
 @app.route('/products')
