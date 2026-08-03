@@ -67,25 +67,16 @@
                                 <th>Item</th>
                                 <th style="text-align: center;">Qty</th>
                                 <th>Total</th>
-                                <th></th> <!-- Column for delete icon -->
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody id="bill-body"></tbody>
                     </table>
 
                     <div class="bill-summary">
-                        <div class="summary-row">
-                            <span>Subtotal:</span> 
-                            <strong id="subtotal">$0.00</strong>
-                        </div>
-                        <div class="summary-row">
-                            <span>Tax (5%):</span> 
-                            <strong id="tax-amount">$0.00</strong>
-                        </div>
-                        <div class="summary-row grand-total">
-                            <span>Grand Total:</span> 
-                            <strong id="grand-total">$0.00</strong>
-                        </div>
+                        <div class="summary-row"><span>Subtotal:</span> <strong id="subtotal">$0.00</strong></div>
+                        <div class="summary-row"><span>Tax (5%):</span> <strong id="tax-amount">$0.00</strong></div>
+                        <div class="summary-row grand-total"><span>Grand Total:</span> <strong id="grand-total">$0.00</strong></div>
                     </div>
 
                     <div class="bill-actions">
@@ -102,7 +93,6 @@
     <script>
         let cart = [];
 
-        // Function to add an item
         function addToBill(name, price) {
             let existingItem = cart.find(item => item.name === name);
             if (existingItem) {
@@ -113,20 +103,15 @@
             updateBillUI();
         }
 
-        // NEW: Function to change quantity (+1 or -1)
         function changeQty(name, amount) {
             let item = cart.find(i => i.name === name);
             if (item) {
                 item.qty += amount;
-                // If qty reaches 0, remove item
-                if (item.qty <= 0) {
-                    removeFromCart(name);
-                }
+                if (item.qty <= 0) removeFromCart(name);
             }
             updateBillUI();
         }
 
-        // NEW: Function to remove item completely
         function removeFromCart(name) {
             cart = cart.filter(i => i.name !== name);
             updateBillUI();
@@ -140,22 +125,18 @@
             cart.forEach((item) => {
                 let itemTotal = item.price * item.qty;
                 subtotal += itemTotal;
-
-                // Added Qty Controls (+ / - buttons) and Delete icon
                 billBody.innerHTML += `
                     <tr>
                         <td>${item.name}</td>
                         <td style="text-align: center;">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                <button onclick="changeQty('${item.name}', -1)" style="cursor:pointer; width: 22px; height: 22px; border-radius: 4px; border: 1px solid #ddd;">-</button>
+                                <button onclick="changeQty('${item.name}', -1)" style="cursor:pointer; width: 22px; height: 22px;">-</button>
                                 <span>${item.qty}</span>
-                                <button onclick="changeQty('${item.name}', 1)" style="cursor:pointer; width: 22px; height: 22px; border-radius: 4px; border: 1px solid #ddd;">+</button>
+                                <button onclick="changeQty('${item.name}', 1)" style="cursor:pointer; width: 22px; height: 22px;">+</button>
                             </div>
                         </td>
                         <td>$${itemTotal.toFixed(2)}</td>
-                        <td>
-                            <i class="fas fa-trash-alt" style="color: #ba1a1a; cursor: pointer;" onclick="removeFromCart('${item.name}')"></i>
-                        </td>
+                        <td><i class="fas fa-trash-alt" style="color: #ba1a1a; cursor: pointer;" onclick="removeFromCart('${item.name}')"></i></td>
                     </tr>
                 `;
             });
@@ -167,49 +148,43 @@
             document.getElementById('tax-amount').innerText = `$${tax.toFixed(2)}`;
             document.getElementById('grand-total').innerText = `$${grandTotal.toFixed(2)}`;
         }
-// Function to send cart data to the Python backend
-function generateBill() {
-    // 1. Validation: Check if the cart has items
-    if (cart.length === 0) {
-        alert("Your cart is empty! Please add products first.");
-        return;
-    }
 
-    // 2. Data Preparation: Get the grand total value from the screen
-    // We remove the '$' sign and convert string to a number
-    let totalText = document.getElementById('grand-total').innerText.replace('$', '');
-    let totalValue = parseFloat(totalText);
+        // Updated Function to send FULL cart data to update stock
+        function generateBill() {
+            if (cart.length === 0) {
+                alert("Your cart is empty! Please add products first.");
+                return;
+            }
 
-    // 3. Network Request: Use Fetch API to send data to /save_bill route
-    fetch('/save_bill', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ total: totalValue }) // Packing data into JSON format
-    })
-    .then(response => response.json()) // Waiting for Python's response
-    .then(data => {
-        if (data.success) {
-            // 4. Success Handling: Clear the cart and update the screen
-            alert("Success: " + data.message);
-            cart = []; // Empty the cart array
-            updateBillUI(); // Refresh the table and totals to $0.00
-        } else {
-            alert("Error: " + data.message);
+            let totalText = document.getElementById('grand-total').innerText.replace('$', '');
+            let totalValue = parseFloat(totalText);
+
+            // Fetch request sending both Total and Cart Items
+            fetch('/save_bill', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    total: totalValue, 
+                    items: cart // Sending list of items to the backend for stock update
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Success: " + data.message);
+                    cart = []; 
+                    updateBillUI(); 
+                    // Refresh page to see updated stock numbers on cards
+                    window.location.reload();
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Something went wrong while saving the bill.");
+            });
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert("Something went wrong while saving the bill.");
-    });
-}
-
-
-
-
-
-
-
     </script>
-
 </body>
 </html>

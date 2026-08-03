@@ -116,24 +116,36 @@ def billing():
     conn.close()
     return render_template('billing.html', products=db_products)
 
-# Logic to save the bill from JavaScript via Fetch API
+# Logic to save the bill
 @app.route('/save_bill', methods=['POST'])
 def save_bill():
     if 'user' not in session:
         return {"success": False, "message": "Unauthorized"}, 401
     
+    # Getting JSON data from JavaScript
     data = request.get_json()
     grand_total = data.get('total')
-    
-    if not grand_total or grand_total <= 0:
-        return {"success": False, "message": "Cart is empty!"}, 400
+    items_sold = data.get('items') # This is the list of products in the cart
+
+    if not items_sold:
+        return {"success": False, "message": "Cart is empty"}, 400
     
     conn = get_db_connection()
+    
+    # Loop through each item in the cart to update the stock
+    for item in items_sold:
+        # SQL logic: Subtract the sold quantity from current inventory stock
+        conn.execute('UPDATE products SET stock = stock - ? WHERE name = ?',
+                     (item['qty'], item['name']))
+    
+    # Save the transaction record
     conn.execute('INSERT INTO sales (customer_name, total_amount) VALUES (?, ?)',
                  ("Guest Customer", grand_total))
+    
     conn.commit()
     conn.close()
-    return {"success": True, "message": "Bill generated successfully!"}
+    
+    return {"success": True, "message": "Bill generated and Stock updated successfully!"}
 
 # Page 5: Sales History Route (Protected)
 # Updated Page 5: Sales History Route to fetch real transactions
