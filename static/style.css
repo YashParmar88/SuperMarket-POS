@@ -468,3 +468,81 @@ body.login-page {
 .delete-icon:hover {
     color: #b91c1c;
 }
+
+
+
+
+
+/* ---  Print Logic --- */
+
+
+@media print {
+    /* 1. Tell browser to HIDE its own headers/footers (Date, URL, Title) */
+    @page {
+        margin: 0; /* Removes the space where browser puts its text */
+        size: auto;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #thermal-receipt, #thermal-receipt * {
+        visibility: visible;
+    }
+
+    /* 2. Professional Receipt Box Styling */
+    #thermal-receipt {
+        display: block !important;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 10mm; /* Thoda sa gap top se */
+        width: 75mm !important; /* Perfect standard width */
+        padding: 5mm !important;
+        background: white !important;
+        color: black !important;
+        font-family: 'Courier New', Courier, monospace;
+        border: 1px solid #eee !important; /* Very light border for preview */
+    }
+
+    /* 3. Fix Text Alignment inside receipt */
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .receipt-header h1 {
+        font-size: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .receipt-header p {
+        font-size: 11px;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .receipt-table {
+        width: 100%;
+        font-size: 12px;
+        margin: 10px 0;
+    }
+
+    .receipt-table th {
+        border-bottom: 1px dashed #000;
+        padding-bottom: 5px;
+    }
+
+    .receipt-table td {
+        padding: 4px 0;
+    }
+
+    .receipt-totals {
+        border-top: 1px dashed #000;
+        padding-top: 10px;
+        text-align: right;
+    }
+}

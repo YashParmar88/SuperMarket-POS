@@ -34,7 +34,7 @@
         <main class="main-content">
             <header class="top-header">
                 <h2>Billing Counter</h2>
-                <span>Invoice: <strong>#INV-2024-001</strong></span>
+                <span>Invoice: <strong id="current-invoice-no">#INV-2024-001</strong></span>
             </header>
 
             <div class="billing-container">
@@ -74,19 +74,76 @@
                     </table>
 
                     <div class="bill-summary">
-                        <div class="summary-row"><span>Subtotal:</span> <strong id="subtotal">$0.00</strong></div>
-                        <div class="summary-row"><span>Tax (5%):</span> <strong id="tax-amount">$0.00</strong></div>
-                        <div class="summary-row grand-total"><span>Grand Total:</span> <strong id="grand-total">$0.00</strong></div>
+                        <div class="summary-row">
+                            <span>Subtotal:</span> 
+                            <strong id="subtotal">$0.00</strong>
+                        </div>
+                        <div class="summary-row">
+                            <span>Tax (%) :</span> 
+                            <input type="number" id="tax-rate" value="5" onchange="updateBillUI()" style="width: 50px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-weight: bold;">
+                        </div>
+                        <div class="summary-row">
+                            <span>Tax Amount:</span> 
+                            <strong id="tax-amount">$0.00</strong>
+                        </div>
+                        <div class="summary-row grand-total">
+                            <span>Grand Total:</span> 
+                            <strong id="grand-total">$0.00</strong>
+                        </div>
                     </div>
 
                     <div class="bill-actions">
-                        <button class="btn-print"><i class="fas fa-print"></i> Print Receipt</button>
+                        <!-- Updated button to call the receipt generation logic -->
+                        <button class="btn-print" onclick="printReceipt()"><i class="fas fa-print"></i> Print Receipt</button>
                         <button class="btn-complete" onclick="generateBill()">Generate Bill <i class="fas fa-check"></i></button>
                     </div>
                 </div>
-
             </div>
         </main>
+    </div>
+
+    <!-- 4. Hidden Professional Thermal Receipt Template (Visible only during print) -->
+    <div id="thermal-receipt" class="print-only">
+        <div class="receipt-header" style="text-align: center;">
+            <h1 style="font-size: 20px; margin: 0;">SUPERMARKET STORE</h1>
+            <p style="font-size: 12px; margin: 2px;">123 Business Square, Main Road</p>
+            <p style="font-size: 12px; margin: 2px;">Contact: +91 98765 43210</p>
+            <p style="margin: 5px 0;">--------------------------------</p>
+            <p style="font-weight: bold; font-size: 14px;">CASH RECEIPT</p>
+        </div>
+
+        <div class="receipt-info" style="font-size: 12px; margin-top: 10px;">
+            <p>Bill No: <span id="r-bill-no">#INV-001</span></p>
+            <p>Date: <span id="r-date"></span> | Time: <span id="r-time"></span></p>
+        </div>
+        
+        <p style="margin: 5px 0;">--------------------------------</p>
+
+        <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 1px dashed #000;">
+                    <th style="text-align: left;">Item</th>
+                    <th style="text-align: center;">Qty</th>
+                    <th style="text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody id="receipt-body">
+                <!-- Items will be injected here by printReceipt() function -->
+            </tbody>
+        </table>
+
+        <p style="margin: 5px 0;">--------------------------------</p>
+
+        <div class="receipt-totals" style="font-size: 13px; text-align: right;">
+            <p>Subtotal: <span id="r-subtotal">$0.00</span></p>
+            <p>GST Amount: <span id="r-tax">$0.00</span></p>
+            <p style="font-weight: bold; font-size: 16px; margin-top: 5px;">GRAND TOTAL: <span id="r-grand-total">$0.00</span></p>
+        </div>
+
+        <div class="receipt-footer" style="text-align: center; margin-top: 15px; font-size: 11px;">
+            <p>--- THANK YOU! VISIT AGAIN ---</p>
+            <p style="margin-top: 5px; font-size: 8px;">Software Generated Invoice</p>
+        </div>
     </div>
 
     <!-- 3. Billing Logic Engine (JavaScript) -->
@@ -141,32 +198,67 @@
                 `;
             });
 
-            let tax = subtotal * 0.05;
-            let grandTotal = subtotal + tax;
+            let taxPercent = document.getElementById('tax-rate').value;
+            let taxValue = subtotal * (taxPercent / 100);
+            let grandTotal = subtotal + taxValue;
 
             document.getElementById('subtotal').innerText = `$${subtotal.toFixed(2)}`;
-            document.getElementById('tax-amount').innerText = `$${tax.toFixed(2)}`;
+            document.getElementById('tax-amount').innerText = `$${taxValue.toFixed(2)}`;
             document.getElementById('grand-total').innerText = `$${grandTotal.toFixed(2)}`;
         }
 
-        // Updated Function to send FULL cart data to update stock
+        /**
+         * NEW: Function to prepare data and trigger thermal receipt printing
+         */
+        function printReceipt() {
+            if (cart.length === 0) {
+                alert("Cart is empty! Add products first.");
+                return;
+            }
+
+            // 1. Fill current Date and Time
+            const now = new Date();
+            document.getElementById('r-date').innerText = now.toLocaleDateString();
+            document.getElementById('r-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            // 2. Fill Bill No from the screen
+            document.getElementById('r-bill-no').innerText = document.getElementById('current-invoice-no').innerText;
+
+            // 3. Copy items from cart to receipt table
+            const rBody = document.getElementById('receipt-body');
+            rBody.innerHTML = '';
+            cart.forEach(item => {
+                rBody.innerHTML += `
+                    <tr>
+                        <td style="padding: 4px 0;">${item.name}</td>
+                        <td style="text-align: center;">${item.qty}</td>
+                        <td style="text-align: right;">$${(item.price * item.qty).toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            // 4. Fill totals
+            document.getElementById('r-subtotal').innerText = document.getElementById('subtotal').innerText;
+            document.getElementById('r-tax').innerText = document.getElementById('tax-amount').innerText;
+            document.getElementById('r-grand-total').innerText = document.getElementById('grand-total').innerText;
+
+            // 5. Trigger the browser print dialog
+            window.print();
+        }
+
         function generateBill() {
             if (cart.length === 0) {
-                alert("Your cart is empty! Please add products first.");
+                alert("Your cart is empty!");
                 return;
             }
 
             let totalText = document.getElementById('grand-total').innerText.replace('$', '');
             let totalValue = parseFloat(totalText);
 
-            // Fetch request sending both Total and Cart Items
             fetch('/save_bill', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    total: totalValue, 
-                    items: cart // Sending list of items to the backend for stock update
-                })
+                body: JSON.stringify({ total: totalValue, items: cart })
             })
             .then(response => response.json())
             .then(data => {
@@ -174,15 +266,10 @@
                     alert("Success: " + data.message);
                     cart = []; 
                     updateBillUI(); 
-                    // Refresh page to see updated stock numbers on cards
                     window.location.reload();
                 } else {
                     alert("Error: " + data.message);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert("Something went wrong while saving the bill.");
             });
         }
     </script>

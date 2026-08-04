@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperMarket POS - Dashboard</title>
-    <!-- Hum Inter font aur Icons link kar rahe hain -->
+    <!-- Google Fonts and FontAwesome Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main project stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- 1. Sidebar: Left Side Menu -->
+        <!-- 1. Sidebar Section (Left Menu) -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-shopping-basket"></i>
@@ -20,42 +21,51 @@
             </div>
             
             <nav class="nav-links">
+                <!-- Navigation links for internal routing -->
                 <a href="/dashboard" class="nav-item active"><i class="fas fa-th-large"></i> Dashboard</a>
                 <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
-               <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+                <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
                 <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
             </nav>
 
             <div class="sidebar-footer">
-              <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <!-- Logout link cleared via Python route -->
+                <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </aside>
 
-        <!-- 2. Main Content: Right Side Area -->
+        <!-- 2. Main Content Section (Right Workspace) -->
         <main class="main-content">
             <header class="top-header">
                 <h2>Welcome back, Admin</h2>
-                <button class="btn-new-trx">+ New Transaction</button>
+                <!-- Fixed: Changed button to an anchor tag to link it to the billing page -->
+                <a href="/billing" class="btn-new-trx" style="text-decoration: none; display: inline-block;">+ New Transaction</a>
             </header>
 
-            <!-- Stats Cards (Chote dabbe summary ke liye) -->
-            <div class="stat-card">
-    <p>Total Products</p>
-    <h3>{{ p_count }}</h3>
-</div>
+            <!-- 3. Dashboard Statistics Cards -->
+            <div class="stats-grid">
+                <!-- Displays total product types in inventory -->
                 <div class="stat-card">
-    <p>Total Sales Today</p>
-    <h3>${{ "%.2f"|format(s_sum) }}</h3>
-</div>
+                    <p>Total Products</p>
+                    <h3>{{ p_count }}</h3>
+                </div>
+
+                <!-- Displays total revenue from sales table -->
+                <div class="stat-card">
+                    <p>Total Sales Today</p>
+                    <h3>${{ "%.2f"|format(s_sum) }}</h3>
+                </div>
+
+                <!-- Status indicator for current terminal -->
                 <div class="stat-card blue-card">
                     <p>Active Terminal</p>
                     <h3>Terminal 04</h3>
                 </div>
             </div>
 
-            <!-- Recent Activity Table -->
+            <!-- 4. Recent Activity Preview (Static for now) -->
             <div class="recent-section">
-                <h3>Recent Transactions</h3>
+                <h3>Recent Transactions Preview</h3>
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -66,8 +76,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>#8821</td><td>Guest Customer</td><td>$142.00</td><td><span class="status-done">Completed</span></td></tr>
-                        <tr><td>#8820</td><td>Member #4412</td><td>$89.50</td><td><span class="status-done">Completed</span></td></tr>
+                        <!-- Displaying mock data for design preview -->
+                        <tr>
+                            <td>#8821</td>
+                            <td>Guest Customer</td>
+                            <td>$142.00</td>
+                            <td><span class="status-done">Completed</span></td>
+                        </tr>
+                        <tr>
+                            <td>#8820</td>
+                            <td>Member #4412</td>
+                            <td>$89.50</td>
+                            <td><span class="status-done">Completed</span></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

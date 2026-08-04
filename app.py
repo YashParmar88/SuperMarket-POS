@@ -171,6 +171,23 @@ def history():
     return render_template('history.html', sales=all_sales, total=total_revenue, count=bill_count)
 
 
+# Route to delete a specific product using its ID
+@app.route('/delete_product/<int:id>')
+def delete_product(id):
+    # Security: Only logged-in users can delete
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    conn = get_db_connection()
+    # SQL logic to remove product from database
+    conn.execute('DELETE FROM products WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    
+    # After deleting, stay on the products page
+    return redirect(url_for('products'))
+
+
 
 
 

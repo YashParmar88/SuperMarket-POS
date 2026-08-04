@@ -105,7 +105,13 @@
         <td class="{% if item['stock'] < 10 %}low-stock-alert{% endif %}">
             {{ item['stock'] }}
         </td>
-        <td><i class="fas fa-edit action-icon"></i></td>
+<td>
+    <a href="/delete_product/{{ item['id'] }}" 
+       onclick="return confirm('Are you sure you want to remove this product?')" 
+       style="color: #ba1a1a; text-decoration: none;">
+        <i class="fas fa-trash-alt"></i>
+    </a>
+</td>
     </tr>
     {% endfor %}
 </tbody>

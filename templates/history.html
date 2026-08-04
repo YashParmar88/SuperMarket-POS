@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperMarket - Sales History</title>
-    <!-- Standard fonts and icons -->
+    <!-- External fonts and icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main project stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- Sidebar Navigation -->
+        <!-- 1. Sidebar Section -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-shopping-basket"></i>
@@ -25,40 +26,37 @@
                 <a href="/history" class="nav-item active"><i class="fas fa-history"></i> Sales History</a>
             </nav>
             <div class="sidebar-footer">
-                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </aside>
 
-        <!-- Main Workspace -->
+        <!-- 2. Main History Workspace -->
         <main class="main-content">
             <header class="top-header">
                 <div class="header-info">
                     <h2>Sales History</h2>
-                    <p>Review and track all past transactions</p>
+                    <p>Track all completed transactions and revenue</p>
                 </div>
-                <div class="header-buttons">
-                    <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
-                    <button class="btn-outline"><i class="fas fa-download"></i> Export CSV</button>
-                </div>
+                <!-- Note: Filter and Export buttons removed to keep the interface functional for submission -->
             </header>
 
-            <!-- Sales Summary Cards -->
+            <!-- 3. Sales Summary Cards -->
             <div class="stats-grid">
-    <div class="stat-card">
-        <p>Total Revenue</p>
-        <h3>${{ "%.2f"|format(total) }}</h3>
-    </div>
-    <div class="stat-card">
-        <p>Bills Generated</p>
-        <h3>{{ count }}</h3>
-    </div>
-    <div class="stat-card blue-card">
-        <p>Store Status</p>
-        <h3>Active</h3>
-    </div>
-</div>
+                <div class="stat-card">
+                    <p>Total Revenue</p>
+                    <h3>${{ "%.2f"|format(total) }}</h3>
+                </div>
+                <div class="stat-card">
+                    <p>Bills Generated</p>
+                    <h3>{{ count }}</h3>
+                </div>
+                <div class="stat-card blue-card">
+                    <p>Store Status</p>
+                    <h3>Active</h3>
+                </div>
+            </div>
 
-            <!-- Transactions Table Card -->
+            <!-- 4. Transactions Table (Cleaned Version) -->
             <div class="history-table-card">
                 <table class="data-table">
                     <thead>
@@ -68,22 +66,21 @@
                             <th>Date & Time</th>
                             <th>Payment</th>
                             <th>Amount</th>
-                            <th>Action</th>
+                            <!-- Action column removed as it's a phase-2 feature -->
                         </tr>
                     </thead>
                     <tbody>
-    <!-- Loop through each sale record fetched from database -->
-    {% for sale in sales %}
-    <tr>
-        <td>#INV-{{ sale['id'] }}</td>
-        <td>{{ sale['customer_name'] }}</td>
-        <td>{{ sale['date_time'] }}</td>
-        <td><span class="pay-badge cash">CASH</span></td>
-        <td><strong>${{ "%.2f"|format(sale['total_amount']) }}</strong></td>
-        <td><button class="btn-view-small">View</button></td>
-    </tr>
-    {% endfor %}
-</tbody>
+                        <!-- Rendering real transaction data from Python backend -->
+                        {% for sale in sales %}
+                        <tr>
+                            <td>#INV-{{ sale['id'] }}</td>
+                            <td>{{ sale['customer_name'] }}</td>
+                            <td>{{ sale['date_time'] }}</td>
+                            <td><span class="pay-badge cash">CASH</span></td>
+                            <td><strong>${{ "%.2f"|format(sale['total_amount']) }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
                 </table>
             </div>
         </main>
