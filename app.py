@@ -51,14 +51,15 @@ def login_process():
     pwd = request.form.get('password')
 
     if user == "admin" and pwd == "123":
+        # Create a session to remember that user is logged in
         session['user'] = user 
         return redirect(url_for('dashboard'))
     else:
+        # Show error if login fails
         flash("Invalid Username or Password. Please try again.")
         return redirect(url_for('login'))
 
 # Page 2: Dashboard Route (Protected)
-# Updated Page 2: Dashboard Route to show real-time statistics
 @app.route('/dashboard')
 def dashboard():
     # Security: Redirect to login if user is not in session
@@ -66,18 +67,15 @@ def dashboard():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    
-    # 1. Fetch total count of products in the inventory
+    # Fetch total product count
     product_stats = conn.execute('SELECT COUNT(*) FROM products').fetchone()
     total_products = product_stats[0] if product_stats else 0
     
-    # 2. Fetch total sum of all sales generated so far
+    # Fetch total sales sum
     sales_stats = conn.execute('SELECT SUM(total_amount) FROM sales').fetchone()
     total_sales = sales_stats[0] if sales_stats[0] is not None else 0.0
     
     conn.close()
-
-    # Pass the calculated stats to the dashboard template
     return render_template('dashboard.html', p_count=total_products, s_sum=total_sales)
 
 # Page 3: Products Management Route (Protected)
@@ -90,7 +88,7 @@ def products():
     conn.close()
     return render_template('products.html', products=db_products)
 
-# Logic to add a new product
+# Logic to add a new product via POST
 @app.route('/add_product', methods=['POST'])
 def add_product():
     if 'user' not in session:
@@ -116,81 +114,68 @@ def billing():
     conn.close()
     return render_template('billing.html', products=db_products)
 
-# Logic to save the bill
+# Logic to save the bill and update stock automatically
 @app.route('/save_bill', methods=['POST'])
 def save_bill():
     if 'user' not in session:
         return {"success": False, "message": "Unauthorized"}, 401
     
-    # Getting JSON data from JavaScript
     data = request.get_json()
     grand_total = data.get('total')
-    items_sold = data.get('items') # This is the list of products in the cart
+    items_sold = data.get('items')
 
     if not items_sold:
         return {"success": False, "message": "Cart is empty"}, 400
     
     conn = get_db_connection()
-    
     # Loop through each item in the cart to update the stock
     for item in items_sold:
-        # SQL logic: Subtract the sold quantity from current inventory stock
         conn.execute('UPDATE products SET stock = stock - ? WHERE name = ?',
                      (item['qty'], item['name']))
     
-    # Save the transaction record
+    # Save the transaction record into sales history
     conn.execute('INSERT INTO sales (customer_name, total_amount) VALUES (?, ?)',
                  ("Guest Customer", grand_total))
     
     conn.commit()
     conn.close()
-    
-    return {"success": True, "message": "Bill generated and Stock updated successfully!"}
+    return {"success": True, "message": "Bill generated successfully!"}
 
 # Page 5: Sales History Route (Protected)
-# Updated Page 5: Sales History Route to fetch real transactions
 @app.route('/history')
 def history():
-    # Security check: Ensure admin is logged in
     if 'user' not in session:
         return redirect(url_for('login'))
     
     conn = get_db_connection()
-    # Fetch all records from 'sales' table, sorted by latest first
     all_sales = conn.execute('SELECT * FROM sales ORDER BY id DESC').fetchall()
     
-    # Simple calculation for summary cards
     total_revenue = 0
     for sale in all_sales:
         total_revenue += sale['total_amount']
     
     bill_count = len(all_sales)
     conn.close()
-    
-    # Passing data and counts to the HTML template
     return render_template('history.html', sales=all_sales, total=total_revenue, count=bill_count)
-
 
 # Route to delete a specific product using its ID
 @app.route('/delete_product/<int:id>')
 def delete_product(id):
-    # Security: Only logged-in users can delete
     if 'user' not in session:
         return redirect(url_for('login'))
-    
     conn = get_db_connection()
-    # SQL logic to remove product from database
     conn.execute('DELETE FROM products WHERE id = ?', (id,))
     conn.commit()
     conn.close()
-    
-    # After deleting, stay on the products page
     return redirect(url_for('products'))
 
-
-
-
-
+# --- NEW: Route to clear session and logout user ---
+@app.route('/logout')
+def logout():
+    # Remove user data from session
+    session.pop('user', None) 
+    flash("You have been logged out successfully.")
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True)

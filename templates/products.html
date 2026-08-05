@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperMarket - Products Management</title>
-    <!-- Standard fonts and icons -->
+    <!-- External fonts and icon libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Link to your CSS file -->
+    <!-- Main project stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- 1. Sidebar Section (Left) -->
+        <!-- 1. Sidebar Section -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-shopping-basket"></i>
@@ -21,7 +21,6 @@
             </div>
             
             <nav class="nav-links">
-                <!-- Navigation links matching your Dashboard style -->
                 <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
                 <a href="/products" class="nav-item active"><i class="fas fa-box"></i> Products</a>
                 <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
@@ -29,26 +28,26 @@
             </nav>
 
             <div class="sidebar-footer">
-                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </aside>
 
-        <!-- 2. Main Content Section (Right) -->
+        <!-- 2. Main Content Section -->
         <main class="main-content">
             <header class="top-header">
                 <div class="header-info">
                     <h2>Products Management</h2>
                     <p>Manage your inventory levels</p>
                 </div>
-                <!-- Search bar for products -->
+                <!-- Search bar: Added ID and onkeyup event for live filtering -->
                 <div class="search-container">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search product catalog...">
+                    <input type="text" id="productSearch" placeholder="Search by name or category..." onkeyup="filterProducts()">
                 </div>
             </header>
 
             <div class="products-layout-grid">
-                <!-- Left: Form to Add New Product -->
+                <!-- Left Card: Add New Product Form -->
                 <div class="data-card">
                     <h3><i class="fas fa-plus-circle"></i> Add New Product</h3>
                     <form class="entry-form" action="/add_product" method="POST">
@@ -79,10 +78,10 @@
                     </form>
                 </div>
 
-                <!-- Right: Product Inventory Table -->
+                <!-- Right Card: Inventory Display Table -->
                 <div class="data-card">
                     <h3>Current Inventory</h3>
-                    <table class="inventory-display-table">
+                    <table class="inventory-display-table" id="productTable">
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -93,34 +92,63 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Demo data for your presentation -->
-                            <!-- Using a loop to display real data from the database -->
-<tbody>
-    {% for item in products %}
-    <tr>
-        <td>{{ item['name'] }}</td>
-        <td><span class="type-tag">{{ item['category'] }}</span></td>
-        <td>${{ item['price'] }}</td>
-        <!-- CSS logic: If stock is below 10, show red alert class -->
-        <td class="{% if item['stock'] < 10 %}low-stock-alert{% endif %}">
-            {{ item['stock'] }}
-        </td>
-<td>
-    <a href="/delete_product/{{ item['id'] }}" 
-       onclick="return confirm('Are you sure you want to remove this product?')" 
-       style="color: #ba1a1a; text-decoration: none;">
-        <i class="fas fa-trash-alt"></i>
-    </a>
-</td>
-    </tr>
-    {% endfor %}
-</tbody>
+                            <!-- Looping through products fetched from SQLite database -->
+                            {% for item in products %}
+                            <tr>
+                                <td style="text-transform: capitalize;">{{ item['name'] }}</td>
+                                <td><span class="type-tag">{{ item['category'] }}</span></td>
+                                <td>${{ "%.2f"|format(item['price']) }}</td>
+                                <!-- Highlight red if stock is low (less than 10) -->
+                                <td class="{% if item['stock'] < 10 %}low-stock-alert{% endif %}">
+                                    {{ item['stock'] }}
+                                </td>
+                                <td>
+                                    <a href="/delete_product/{{ item['id'] }}" 
+                                       onclick="return confirm('Remove this product from inventory?')" 
+                                       style="color: #ba1a1a; text-decoration: none;">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- 3. Real-time Search Logic (JavaScript) -->
+    <script>
+        /**
+         * Function to filter the product table rows based on user input
+         */
+        function filterProducts() {
+            // Get the search input value and convert to lowercase
+            let input = document.getElementById('productSearch').value.toLowerCase();
+            // Target all data rows in the table body
+            let table = document.getElementById('productTable');
+            let tr = table.getElementsByTagName('tr');
+
+            // Loop through each row (starting from index 1 to skip header)
+            for (let i = 1; i < tr.length; i++) {
+                let nameCell = tr[i].getElementsByTagName('td')[0];
+                let categoryCell = tr[i].getElementsByTagName('td')[1];
+
+                if (nameCell || categoryCell) {
+                    let nameText = nameCell.textContent.toLowerCase();
+                    let categoryText = categoryCell.textContent.toLowerCase();
+
+                    // If match found in either name or category, show row; else hide it
+                    if (nameText.indexOf(input) > -1 || categoryText.indexOf(input) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    </script>
 
 </body>
 </html>

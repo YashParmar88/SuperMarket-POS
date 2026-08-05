@@ -42,7 +42,8 @@
                 <!-- Left Section: Search and Product Selection -->
                 <div class="selection-area">
                     <div class="search-section">
-                        <input type="text" placeholder="Search products...">
+                        <!-- Added ID 'billingSearch' and onkeyup event to trigger search function -->
+                        <input type="text" id="billingSearch" placeholder="Search products..." onkeyup="filterCards()">
                         <i class="fas fa-search" style="color: #94a3b8; padding-top: 10px;"></i>
                     </div>
 
@@ -93,7 +94,6 @@
                     </div>
 
                     <div class="bill-actions">
-                        <!-- Updated button to call the receipt generation logic -->
                         <button class="btn-print" onclick="printReceipt()"><i class="fas fa-print"></i> Print Receipt</button>
                         <button class="btn-complete" onclick="generateBill()">Generate Bill <i class="fas fa-check"></i></button>
                     </div>
@@ -102,7 +102,7 @@
         </main>
     </div>
 
-    <!-- 4. Hidden Professional Thermal Receipt Template (Visible only during print) -->
+    <!-- 4. Hidden Professional Thermal Receipt Template -->
     <div id="thermal-receipt" class="print-only">
         <div class="receipt-header" style="text-align: center;">
             <h1 style="font-size: 20px; margin: 0;">SUPERMARKET STORE</h1>
@@ -111,14 +111,11 @@
             <p style="margin: 5px 0;">--------------------------------</p>
             <p style="font-weight: bold; font-size: 14px;">CASH RECEIPT</p>
         </div>
-
         <div class="receipt-info" style="font-size: 12px; margin-top: 10px;">
             <p>Bill No: <span id="r-bill-no">#INV-001</span></p>
             <p>Date: <span id="r-date"></span> | Time: <span id="r-time"></span></p>
         </div>
-        
         <p style="margin: 5px 0;">--------------------------------</p>
-
         <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
             <thead>
                 <tr style="border-bottom: 1px dashed #000;">
@@ -127,19 +124,14 @@
                     <th style="text-align: right;">Total</th>
                 </tr>
             </thead>
-            <tbody id="receipt-body">
-                <!-- Items will be injected here by printReceipt() function -->
-            </tbody>
+            <tbody id="receipt-body"></tbody>
         </table>
-
         <p style="margin: 5px 0;">--------------------------------</p>
-
         <div class="receipt-totals" style="font-size: 13px; text-align: right;">
             <p>Subtotal: <span id="r-subtotal">$0.00</span></p>
             <p>GST Amount: <span id="r-tax">$0.00</span></p>
             <p style="font-weight: bold; font-size: 16px; margin-top: 5px;">GRAND TOTAL: <span id="r-grand-total">$0.00</span></p>
         </div>
-
         <div class="receipt-footer" style="text-align: center; margin-top: 15px; font-size: 11px;">
             <p>--- THANK YOU! VISIT AGAIN ---</p>
             <p style="margin-top: 5px; font-size: 8px;">Software Generated Invoice</p>
@@ -208,23 +200,17 @@
         }
 
         /**
-         * NEW: Function to prepare data and trigger thermal receipt printing
+         * Function to prepare data and trigger thermal receipt printing
          */
         function printReceipt() {
             if (cart.length === 0) {
                 alert("Cart is empty! Add products first.");
                 return;
             }
-
-            // 1. Fill current Date and Time
             const now = new Date();
             document.getElementById('r-date').innerText = now.toLocaleDateString();
             document.getElementById('r-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-            // 2. Fill Bill No from the screen
             document.getElementById('r-bill-no').innerText = document.getElementById('current-invoice-no').innerText;
-
-            // 3. Copy items from cart to receipt table
             const rBody = document.getElementById('receipt-body');
             rBody.innerHTML = '';
             cart.forEach(item => {
@@ -236,25 +222,22 @@
                     </tr>
                 `;
             });
-
-            // 4. Fill totals
             document.getElementById('r-subtotal').innerText = document.getElementById('subtotal').innerText;
             document.getElementById('r-tax').innerText = document.getElementById('tax-amount').innerText;
             document.getElementById('r-grand-total').innerText = document.getElementById('grand-total').innerText;
-
-            // 5. Trigger the browser print dialog
             window.print();
         }
 
+        /**
+         * Logic to save current bill and update database stock
+         */
         function generateBill() {
             if (cart.length === 0) {
                 alert("Your cart is empty!");
                 return;
             }
-
             let totalText = document.getElementById('grand-total').innerText.replace('$', '');
             let totalValue = parseFloat(totalText);
-
             fetch('/save_bill', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -271,6 +254,28 @@
                     alert("Error: " + data.message);
                 }
             });
+        }
+
+        /**
+         * Real-time search function to filter product cards
+         */
+        function filterCards() {
+            // Get user input and convert to lowercase
+            let input = document.getElementById('billingSearch').value.toLowerCase();
+            // Get all cards with class 'p-card'
+            let cards = document.getElementsByClassName('p-card');
+
+            for (let i = 0; i < cards.length; i++) {
+                // Find product name inside the bold <strong> tag
+                let name = cards[i].getElementsByTagName('p')[0].innerText.toLowerCase();
+                
+                // If input matches name, show the card, else hide it
+                if (name.includes(input)) {
+                    cards[i].style.display = "block";
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
         }
     </script>
 </body>
