@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperMarket POS - Dashboard</title>
-    <!-- Google Fonts and FontAwesome Icons -->
+    <!-- Standard fonts and icon libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Main project stylesheet -->
+    <!-- Link to global stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- 1. Sidebar Section (Left Menu) -->
+        <!-- 1. Sidebar Section with Role-based Access Control -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-shopping-basket"></i>
@@ -21,51 +21,55 @@
             </div>
             
             <nav class="nav-links">
-                <!-- Navigation links for internal routing -->
+                <!-- Logic: Only Admin can see the Dashboard and History links -->
+                {% if session['role'] == 'Admin' %}
                 <a href="/dashboard" class="nav-item active"><i class="fas fa-th-large"></i> Dashboard</a>
+                {% endif %}
+
                 <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
                 <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+
+                {% if session['role'] == 'Admin' %}
                 <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
+                {% endif %}
             </nav>
 
             <div class="sidebar-footer">
-                <!-- Logout link cleared via Python route -->
+                <!-- Redirects to Python logout route to clear session -->
                 <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </aside>
 
-        <!-- 2. Main Content Section (Right Workspace) -->
+        <!-- 2. Main Workspace (Right Side) -->
         <main class="main-content">
             <header class="top-header">
-                <h2>Welcome back, Admin</h2>
-                <!-- Fixed: Changed button to an anchor tag to link it to the billing page -->
+                <!-- Personalizing the welcome message with user's name -->
+                <h2>Welcome back, <span style="color: #003f87;">{{ session['user'] }}</span></h2>
                 <a href="/billing" class="btn-new-trx" style="text-decoration: none; display: inline-block;">+ New Transaction</a>
             </header>
 
-            <!-- 3. Dashboard Statistics Cards -->
+            <!-- 3. Dynamic Statistics Cards (Fetched from database) -->
             <div class="stats-grid">
-                <!-- Displays total product types in inventory -->
                 <div class="stat-card">
                     <p>Total Products</p>
                     <h3>{{ p_count }}</h3>
                 </div>
 
-                <!-- Displays total revenue from sales table -->
                 <div class="stat-card">
                     <p>Total Sales Today</p>
                     <h3>${{ "%.2f"|format(s_sum) }}</h3>
                 </div>
 
-                <!-- Status indicator for current terminal -->
                 <div class="stat-card blue-card">
-                    <p>Active Terminal</p>
-                    <h3>Terminal 04</h3>
+                    <p>User Role</p>
+                    <!-- Shows whether current user is Admin or Cashier -->
+                    <h3>{{ session['role'] }}</h3>
                 </div>
             </div>
 
-            <!-- 4. Recent Activity Preview (Static for now) -->
+            <!-- 4. Sales Preview Table -->
             <div class="recent-section">
-                <h3>Recent Transactions Preview</h3>
+                <h3>System Transactions Overview</h3>
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -76,7 +80,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Displaying mock data for design preview -->
                         <tr>
                             <td>#8821</td>
                             <td>Guest Customer</td>

@@ -3,27 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperMarket - Billing Counter</title>
+    <title>SuperMarket - Advanced Billing</title>
     <!-- External fonts and icon libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Link to global stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Small styling for the quantity input inside the cart table */
+        .cart-qty-input {
+            width: 70px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- 1. Sidebar Section -->
+        <!-- 1. Sidebar Section with Role-based Access Control -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-shopping-basket"></i>
                 <span>SuperMarket</span>
             </div>
             <nav class="nav-links">
+                <!-- Restricted: Dashboard link visible only to Admin -->
+                {% if session['role'] == 'Admin' %}
                 <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                {% endif %}
+
                 <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
                 <a href="/billing" class="nav-item active"><i class="fas fa-calculator"></i> Billing Counter</a>
+
+                <!-- Restricted: Sales History link visible only to Admin -->
+                {% if session['role'] == 'Admin' %}
                 <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
+                {% endif %}
             </nav>
             <div class="sidebar-footer">
                 <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -33,7 +52,7 @@
         <!-- 2. Main Billing Workspace -->
         <main class="main-content">
             <header class="top-header">
-                <h2>Billing Counter</h2>
+                <h2>Billing Counter <small style="font-size: 14px; color: #64748b; font-weight: 400;">(User: {{ session['user'] }})</small></h2>
                 <span>Invoice: <strong id="current-invoice-no">#INV-2024-001</strong></span>
             </header>
 
@@ -42,18 +61,18 @@
                 <!-- Left Section: Search and Product Selection -->
                 <div class="selection-area">
                     <div class="search-section">
-                        <!-- Added ID 'billingSearch' and onkeyup event to trigger search function -->
                         <input type="text" id="billingSearch" placeholder="Search products..." onkeyup="filterCards()">
                         <i class="fas fa-search" style="color: #94a3b8; padding-top: 10px;"></i>
                     </div>
 
                     <div class="quick-products-grid">
                         {% for item in products %}
-                        <div class="p-card" onclick="addToBill('{{ item['name'] }}', {{ item['price'] }})">
+                        <!-- Product selection card -->
+                        <div class="p-card" onclick="addToBill('{{ item['name'] }}', {{ item['price'] }}, '{{ item['unit'] }}')">
                             <p><strong>{{ item['name'] }}</strong></p>
-                            <span style="color: #003f87; font-weight: bold;">${{ item['price'] }}</span>
+                            <span style="color: #003f87; font-weight: bold;">${{ item['price'] }} / {{ item['unit'] }}</span>
                             <br>
-                            <small style="color: #64748b;">Stock: {{ item['stock'] }}</small>
+                            <small style="color: #64748b;">Available: {{ item['stock'] }} {{ item['unit'] }}</small>
                         </div>
                         {% endfor %}
                     </div>
@@ -83,10 +102,6 @@
                             <span>Tax (%) :</span> 
                             <input type="number" id="tax-rate" value="5" onchange="updateBillUI()" style="width: 50px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-weight: bold;">
                         </div>
-                        <div class="summary-row">
-                            <span>Tax Amount:</span> 
-                            <strong id="tax-amount">$0.00</strong>
-                        </div>
                         <div class="summary-row grand-total">
                             <span>Grand Total:</span> 
                             <strong id="grand-total">$0.00</strong>
@@ -102,61 +117,50 @@
         </main>
     </div>
 
-    <!-- 4. Hidden Professional Thermal Receipt Template -->
+    <!-- Hidden Receipt Template for Printing -->
     <div id="thermal-receipt" class="print-only">
         <div class="receipt-header" style="text-align: center;">
             <h1 style="font-size: 20px; margin: 0;">SUPERMARKET STORE</h1>
-            <p style="font-size: 12px; margin: 2px;">123 Business Square, Main Road</p>
-            <p style="font-size: 12px; margin: 2px;">Contact: +91 98765 43210</p>
             <p style="margin: 5px 0;">--------------------------------</p>
-            <p style="font-weight: bold; font-size: 14px;">CASH RECEIPT</p>
         </div>
-        <div class="receipt-info" style="font-size: 12px; margin-top: 10px;">
-            <p>Bill No: <span id="r-bill-no">#INV-001</span></p>
-            <p>Date: <span id="r-date"></span> | Time: <span id="r-time"></span></p>
+        <div class="receipt-info" style="font-size: 12px;">
+            <p>Bill No: <span id="r-bill-no"></span></p>
+            <p>Date: <span id="r-date"></span></p>
         </div>
         <p style="margin: 5px 0;">--------------------------------</p>
         <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
-            <thead>
-                <tr style="border-bottom: 1px dashed #000;">
-                    <th style="text-align: left;">Item</th>
-                    <th style="text-align: center;">Qty</th>
-                    <th style="text-align: right;">Total</th>
-                </tr>
-            </thead>
+            <thead><tr><th align="left">Item</th><th align="center">Qty</th><th align="right">Total</th></tr></thead>
             <tbody id="receipt-body"></tbody>
         </table>
         <p style="margin: 5px 0;">--------------------------------</p>
-        <div class="receipt-totals" style="font-size: 13px; text-align: right;">
-            <p>Subtotal: <span id="r-subtotal">$0.00</span></p>
-            <p>GST Amount: <span id="r-tax">$0.00</span></p>
-            <p style="font-weight: bold; font-size: 16px; margin-top: 5px;">GRAND TOTAL: <span id="r-grand-total">$0.00</span></p>
-        </div>
-        <div class="receipt-footer" style="text-align: center; margin-top: 15px; font-size: 11px;">
-            <p>--- THANK YOU! VISIT AGAIN ---</p>
-            <p style="margin-top: 5px; font-size: 8px;">Software Generated Invoice</p>
+        <div style="text-align: right; font-size: 14px;">
+            <p><strong>GRAND TOTAL: <span id="r-grand-total"></span></strong></p>
         </div>
     </div>
 
-    <!-- 3. Billing Logic Engine (JavaScript) -->
+    <!-- 3. Billing Logic Engine -->
     <script>
         let cart = [];
 
-        function addToBill(name, price) {
+        function addToBill(name, price, unit) {
             let existingItem = cart.find(item => item.name === name);
             if (existingItem) {
-                existingItem.qty += 1;
+                existingItem.qty += (unit === 'Pcs' ? 1 : 0.5);
             } else {
-                cart.push({ name: name, price: price, qty: 1 });
+                cart.push({ name: name, price: price, qty: 1, unit: unit });
             }
             updateBillUI();
         }
 
-        function changeQty(name, amount) {
+        function updateManualQty(name, value) {
             let item = cart.find(i => i.name === name);
             if (item) {
-                item.qty += amount;
-                if (item.qty <= 0) removeFromCart(name);
+                let newQty = parseFloat(value);
+                if (isNaN(newQty) || newQty <= 0) {
+                    removeFromCart(name);
+                } else {
+                    item.qty = newQty;
+                }
             }
             updateBillUI();
         }
@@ -174,18 +178,17 @@
             cart.forEach((item) => {
                 let itemTotal = item.price * item.qty;
                 subtotal += itemTotal;
+
                 billBody.innerHTML += `
                     <tr>
-                        <td>${item.name}</td>
+                        <td>${item.name} <br><small style="color:gray">${item.unit}</small></td>
                         <td style="text-align: center;">
-                            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                <button onclick="changeQty('${item.name}', -1)" style="cursor:pointer; width: 22px; height: 22px;">-</button>
-                                <span>${item.qty}</span>
-                                <button onclick="changeQty('${item.name}', 1)" style="cursor:pointer; width: 22px; height: 22px;">+</button>
-                            </div>
+                            <input type="number" step="0.01" class="cart-qty-input" 
+                                   value="${item.qty}" 
+                                   onchange="updateManualQty('${item.name}', this.value)">
                         </td>
                         <td>$${itemTotal.toFixed(2)}</td>
-                        <td><i class="fas fa-trash-alt" style="color: #ba1a1a; cursor: pointer;" onclick="removeFromCart('${item.name}')"></i></td>
+                        <td><i class="fas fa-trash-alt" style="color:red; cursor:pointer;" onclick="removeFromCart('${item.name}')"></i></td>
                     </tr>
                 `;
             });
@@ -195,86 +198,49 @@
             let grandTotal = subtotal + taxValue;
 
             document.getElementById('subtotal').innerText = `$${subtotal.toFixed(2)}`;
-            document.getElementById('tax-amount').innerText = `$${taxValue.toFixed(2)}`;
             document.getElementById('grand-total').innerText = `$${grandTotal.toFixed(2)}`;
         }
 
-        /**
-         * Function to prepare data and trigger thermal receipt printing
-         */
-        function printReceipt() {
-            if (cart.length === 0) {
-                alert("Cart is empty! Add products first.");
-                return;
-            }
-            const now = new Date();
-            document.getElementById('r-date').innerText = now.toLocaleDateString();
-            document.getElementById('r-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('r-bill-no').innerText = document.getElementById('current-invoice-no').innerText;
-            const rBody = document.getElementById('receipt-body');
-            rBody.innerHTML = '';
-            cart.forEach(item => {
-                rBody.innerHTML += `
-                    <tr>
-                        <td style="padding: 4px 0;">${item.name}</td>
-                        <td style="text-align: center;">${item.qty}</td>
-                        <td style="text-align: right;">$${(item.price * item.qty).toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-            document.getElementById('r-subtotal').innerText = document.getElementById('subtotal').innerText;
-            document.getElementById('r-tax').innerText = document.getElementById('tax-amount').innerText;
-            document.getElementById('r-grand-total').innerText = document.getElementById('grand-total').innerText;
-            window.print();
-        }
-
-        /**
-         * Logic to save current bill and update database stock
-         */
         function generateBill() {
-            if (cart.length === 0) {
-                alert("Your cart is empty!");
-                return;
-            }
+            if (cart.length === 0) return alert("Cart is empty!");
             let totalText = document.getElementById('grand-total').innerText.replace('$', '');
-            let totalValue = parseFloat(totalText);
+            
             fetch('/save_bill', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ total: totalValue, items: cart })
+                body: JSON.stringify({ total: parseFloat(totalText), items: cart })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert("Success: " + data.message);
+                    alert(data.message);
                     cart = []; 
                     updateBillUI(); 
                     window.location.reload();
-                } else {
-                    alert("Error: " + data.message);
                 }
             });
         }
 
-        /**
-         * Real-time search function to filter product cards
-         */
-        function filterCards() {
-            // Get user input and convert to lowercase
-            let input = document.getElementById('billingSearch').value.toLowerCase();
-            // Get all cards with class 'p-card'
-            let cards = document.getElementsByClassName('p-card');
+        function printReceipt() {
+            if (cart.length === 0) return alert("Cart is empty!");
+            const now = new Date();
+            document.getElementById('r-date').innerText = now.toLocaleString();
+            document.getElementById('r-bill-no').innerText = document.getElementById('current-invoice-no').innerText;
+            const rBody = document.getElementById('receipt-body');
+            rBody.innerHTML = '';
+            cart.forEach(item => {
+                rBody.innerHTML += `<tr><td>${item.name}</td><td align="center">${item.qty}</td><td align="right">$${(item.price * item.qty).toFixed(2)}</td></tr>`;
+            });
+            document.getElementById('r-grand-total').innerText = document.getElementById('grand-total').innerText;
+            window.print();
+        }
 
+        function filterCards() {
+            let input = document.getElementById('billingSearch').value.toLowerCase();
+            let cards = document.getElementsByClassName('p-card');
             for (let i = 0; i < cards.length; i++) {
-                // Find product name inside the bold <strong> tag
                 let name = cards[i].getElementsByTagName('p')[0].innerText.toLowerCase();
-                
-                // If input matches name, show the card, else hide it
-                if (name.includes(input)) {
-                    cards[i].style.display = "block";
-                } else {
-                    cards[i].style.display = "none";
-                }
+                cards[i].style.display = name.includes(input) ? "block" : "none";
             }
         }
     </script>

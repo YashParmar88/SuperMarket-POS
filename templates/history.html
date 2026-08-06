@@ -4,26 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperMarket - Sales History</title>
-    <!-- External fonts and icons -->
+    <!-- External fonts and icon libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Main project stylesheet -->
+    <!-- Link to global stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- 1. Sidebar Section -->
+        <!-- 1. Sidebar Section with Role-based Access -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-shopping-basket"></i>
                 <span>SuperMarket</span>
             </div>
             <nav class="nav-links">
+                <!-- Dashboard link: Only visible to Admins -->
+                {% if session['role'] == 'Admin' %}
                 <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                {% endif %}
+
                 <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
                 <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+
+                <!-- Sales History link: Only visible to Admins -->
+                {% if session['role'] == 'Admin' %}
                 <a href="/history" class="nav-item active"><i class="fas fa-history"></i> Sales History</a>
+                {% endif %}
             </nav>
             <div class="sidebar-footer">
                 <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -35,12 +43,11 @@
             <header class="top-header">
                 <div class="header-info">
                     <h2>Sales History</h2>
-                    <p>Track all completed transactions and revenue</p>
+                    <p>Track all completed transactions and revenue (Admin: {{ session['user'] }})</p>
                 </div>
-                <!-- Note: Filter and Export buttons removed to keep the interface functional for submission -->
             </header>
 
-            <!-- 3. Sales Summary Cards -->
+            <!-- 3. Dynamic Sales Summary Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <p>Total Revenue</p>
@@ -51,12 +58,12 @@
                     <h3>{{ count }}</h3>
                 </div>
                 <div class="stat-card blue-card">
-                    <p>Store Status</p>
-                    <h3>Active</h3>
+                    <p>Access Level</p>
+                    <h3>{{ session['role'] }}</h3>
                 </div>
             </div>
 
-            <!-- 4. Transactions Table (Cleaned Version) -->
+            <!-- 4. Transactions Data Table -->
             <div class="history-table-card">
                 <table class="data-table">
                     <thead>
@@ -66,11 +73,10 @@
                             <th>Date & Time</th>
                             <th>Payment</th>
                             <th>Amount</th>
-                            <!-- Action column removed as it's a phase-2 feature -->
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Rendering real transaction data from Python backend -->
+                        <!-- Rendering sales records from Python backend -->
                         {% for sale in sales %}
                         <tr>
                             <td>#INV-{{ sale['id'] }}</td>

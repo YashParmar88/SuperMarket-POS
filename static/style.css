@@ -472,6 +472,16 @@ body.login-page {
 
 
 
+/* Add this around Line 475 (Outside of @media print) */
+.print-only {
+    display: none;
+}
+
+
+
+
+
+
 
 /* ---  Print Logic --- */
 

@@ -2,29 +2,42 @@ import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 
 app = Flask(__name__)
-# Secret key is required for sessions and flash messages security
+# Secret key for session security and flash messages
 app.secret_key = "supermarket_secret_key"
 
-# Function to connect to the SQLite database
+# Database Connection Function
 def get_db_connection():
     conn = sqlite3.connect('supermarket.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-# Create the products and sales tables if they don't exist
+# Updated Database Initialization with Users table for Roles
 def init_db():
     conn = get_db_connection()
-    # 1. Table to store product information
+    
+    # 1. Create Users Table (Admin vs Cashier)
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            role TEXT NOT NULL -- Value will be 'Admin' or 'Cashier'
+        )
+    ''')
+
+    # 2. Products table (Stock supports decimal for weights)
     conn.execute('''
         CREATE TABLE IF NOT EXISTS products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL, 
             category TEXT NOT NULL,
+            unit TEXT NOT NULL DEFAULT 'Pcs',
             price REAL NOT NULL, 
-            stock INTEGER NOT NULL
+            stock REAL NOT NULL 
         )
     ''')
-    # 2. Table to store completed sales/transactions
+
+    # 3. Sales history table
     conn.execute('''
         CREATE TABLE IF NOT EXISTS sales (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,10 +46,21 @@ def init_db():
             date_time DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # Insert default users for testing (Only if table is empty)
+    user_check = conn.execute('SELECT COUNT(*) FROM users').fetchone()[0]
+    if user_check == 0:
+        # Admin User: admin / admin
+        conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', 
+                     ('admin', 'admin', 'Admin'))
+        # Cashier User: yash / 123
+        conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', 
+                     ('yash', '123', 'Cashier'))
+
     conn.commit()
     conn.close()
 
-# Initialize the database when the server starts
+# Initialize database
 init_db()
 
 # Page 1: Login Route
@@ -44,137 +68,130 @@ init_db()
 def login():
     return render_template('login.html')
 
-# Logic for processing the login form
+# Logic for processing login based on database roles
 @app.route('/login_process', methods=['POST'])
 def login_process():
-    user = request.form.get('username')
-    pwd = request.form.get('password')
+    username = request.form.get('username')
+    password = request.form.get('password')
 
-    if user == "admin" and pwd == "123":
-        # Create a session to remember that user is logged in
-        session['user'] = user 
-        return redirect(url_for('dashboard'))
+    conn = get_db_connection()
+    # Check if user exists in the database
+    user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?', 
+                        (username, password)).fetchone()
+    conn.close()
+
+    if user:
+        # Store user info and role in the session
+        session['user'] = user['username']
+        session['role'] = user['role'] 
+        
+        # Redirection logic based on role
+        if user['role'] == 'Admin':
+            return redirect(url_for('dashboard'))
+        else:
+            return redirect(url_for('billing'))
     else:
-        # Show error if login fails
-        flash("Invalid Username or Password. Please try again.")
+        flash("Invalid Username or Password. Access Denied.")
         return redirect(url_for('login'))
 
-# Page 2: Dashboard Route (Protected)
+# Page 2: Dashboard (Admin Only)
 @app.route('/dashboard')
 def dashboard():
-    # Security: Redirect to login if user is not in session
-    if 'user' not in session:
+    # Security: If not Admin, kick back to login or billing
+    if 'user' not in session or session['role'] != 'Admin':
+        flash("Unauthorized access! Admins only.")
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    # Fetch total product count
     product_stats = conn.execute('SELECT COUNT(*) FROM products').fetchone()
-    total_products = product_stats[0] if product_stats else 0
-    
-    # Fetch total sales sum
     sales_stats = conn.execute('SELECT SUM(total_amount) FROM sales').fetchone()
-    total_sales = sales_stats[0] if sales_stats[0] is not None else 0.0
-    
     conn.close()
-    return render_template('dashboard.html', p_count=total_products, s_sum=total_sales)
+    s_total = sales_stats[0] if sales_stats[0] is not None else 0.0
+    return render_template('dashboard.html', p_count=product_stats[0], s_sum=s_total)
 
-# Page 3: Products Management Route (Protected)
+# Page 3: Products Management (All logged users can view)
 @app.route('/products')
 def products():
-    if 'user' not in session:
+    if 'user' not in session: 
         return redirect(url_for('login'))
     conn = get_db_connection()
     db_products = conn.execute('SELECT * FROM products').fetchall()
     conn.close()
     return render_template('products.html', products=db_products)
 
-# Logic to add a new product via POST
+# Logic to add a product (Admin Only)
 @app.route('/add_product', methods=['POST'])
 def add_product():
-    if 'user' not in session:
-        return redirect(url_for('login'))
+    if 'user' not in session or session['role'] != 'Admin': 
+        flash("You do not have permission to add stock.")
+        return redirect(url_for('products'))
+
     name = request.form.get('name')
     category = request.form.get('category')
+    unit = request.form.get('unit')
     price = request.form.get('price')
     stock = request.form.get('stock')
+    
     conn = get_db_connection()
-    conn.execute('INSERT INTO products (name, category, price, stock) VALUES (?, ?, ?, ?)',
-                 (name, category, price, stock))
+    conn.execute('INSERT INTO products (name, category, unit, price, stock) VALUES (?, ?, ?, ?, ?)',
+                 (name, category, unit, price, stock))
     conn.commit()
     conn.close()
     return redirect(url_for('products'))
 
-# Page 4: Billing Counter Route (Protected)
+# Page 4: Billing Counter (Both Admin & Cashier can access)
 @app.route('/billing')
 def billing():
-    if 'user' not in session:
+    if 'user' not in session: 
         return redirect(url_for('login'))
     conn = get_db_connection()
     db_products = conn.execute('SELECT * FROM products').fetchall()
     conn.close()
     return render_template('billing.html', products=db_products)
 
-# Logic to save the bill and update stock automatically
 @app.route('/save_bill', methods=['POST'])
 def save_bill():
-    if 'user' not in session:
-        return {"success": False, "message": "Unauthorized"}, 401
-    
+    if 'user' not in session: return {"success": False}, 401
     data = request.get_json()
-    grand_total = data.get('total')
-    items_sold = data.get('items')
-
-    if not items_sold:
-        return {"success": False, "message": "Cart is empty"}, 400
-    
     conn = get_db_connection()
-    # Loop through each item in the cart to update the stock
-    for item in items_sold:
+    for item in data.get('items'):
         conn.execute('UPDATE products SET stock = stock - ? WHERE name = ?',
                      (item['qty'], item['name']))
-    
-    # Save the transaction record into sales history
     conn.execute('INSERT INTO sales (customer_name, total_amount) VALUES (?, ?)',
-                 ("Guest Customer", grand_total))
-    
+                 ("Guest Customer", data.get('total')))
     conn.commit()
     conn.close()
-    return {"success": True, "message": "Bill generated successfully!"}
+    return {"success": True, "message": "Transaction complete!"}
 
-# Page 5: Sales History Route (Protected)
+# Page 5: Sales History (Admin Only)
 @app.route('/history')
 def history():
-    if 'user' not in session:
+    if 'user' not in session or session['role'] != 'Admin': 
+        flash("History access restricted to Admins.")
         return redirect(url_for('login'))
-    
+        
     conn = get_db_connection()
     all_sales = conn.execute('SELECT * FROM sales ORDER BY id DESC').fetchall()
-    
-    total_revenue = 0
-    for sale in all_sales:
-        total_revenue += sale['total_amount']
-    
-    bill_count = len(all_sales)
+    total_rev = sum(sale['total_amount'] for sale in all_sales)
     conn.close()
-    return render_template('history.html', sales=all_sales, total=total_revenue, count=bill_count)
+    return render_template('history.html', sales=all_sales, total=total_rev, count=len(all_sales))
 
-# Route to delete a specific product using its ID
+# Delete Product (Admin Only)
 @app.route('/delete_product/<int:id>')
 def delete_product(id):
-    if 'user' not in session:
-        return redirect(url_for('login'))
+    if 'user' not in session or session['role'] != 'Admin': 
+        flash("Permission denied.")
+        return redirect(url_for('products'))
+        
     conn = get_db_connection()
     conn.execute('DELETE FROM products WHERE id = ?', (id,))
     conn.commit()
     conn.close()
     return redirect(url_for('products'))
 
-# --- NEW: Route to clear session and logout user ---
 @app.route('/logout')
 def logout():
-    # Remove user data from session
-    session.pop('user', None) 
-    flash("You have been logged out successfully.")
+    session.clear() # Clears all session data (User + Role)
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
