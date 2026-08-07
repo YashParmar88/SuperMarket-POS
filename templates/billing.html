@@ -10,7 +10,7 @@
     <!-- Link to global stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* Small styling for the quantity input inside the cart table */
+        /* Styling for the inputs inside the cart table and customer section */
         .cart-qty-input {
             width: 70px;
             padding: 5px;
@@ -19,19 +19,26 @@
             text-align: center;
             font-weight: 600;
         }
+        .customer-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- 1. Sidebar Section with Role-based Access Control -->
+        <!-- 1. Sidebar Section with Role-based Access -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-shopping-basket"></i>
                 <span>SuperMarket</span>
             </div>
             <nav class="nav-links">
-                <!-- Restricted: Dashboard link visible only to Admin -->
                 {% if session['role'] == 'Admin' %}
                 <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
                 {% endif %}
@@ -39,7 +46,6 @@
                 <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
                 <a href="/billing" class="nav-item active"><i class="fas fa-calculator"></i> Billing Counter</a>
 
-                <!-- Restricted: Sales History link visible only to Admin -->
                 {% if session['role'] == 'Admin' %}
                 <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
                 {% endif %}
@@ -67,7 +73,6 @@
 
                     <div class="quick-products-grid">
                         {% for item in products %}
-                        <!-- Product selection card -->
                         <div class="p-card" onclick="addToBill('{{ item['name'] }}', {{ item['price'] }}, '{{ item['unit'] }}')">
                             <p><strong>{{ item['name'] }}</strong></p>
                             <span style="color: #003f87; font-weight: bold;">${{ item['price'] }} / {{ item['unit'] }}</span>
@@ -81,6 +86,17 @@
                 <!-- Right Section: Current Billing Summary -->
                 <div class="bill-card">
                     <h3>Current Bill</h3>
+                    
+                    <!-- NEW: Customer Information and Payment Mode -->
+                    <div class="customer-section" style="margin-top: 15px;">
+                        <input type="text" id="cust-name" class="customer-input" placeholder="Customer Name (Optional)">
+                        <select id="pay-mode" class="customer-input" style="background-color: #f8f9fa; font-weight: 600;">
+                            <option value="Cash">Cash Payment</option>
+                            <option value="Card">Card Payment</option>
+                            <option value="Online">Online / UPI</option>
+                        </select>
+                    </div>
+
                     <table class="bill-table">
                         <thead>
                             <tr>
@@ -125,6 +141,8 @@
         </div>
         <div class="receipt-info" style="font-size: 12px;">
             <p>Bill No: <span id="r-bill-no"></span></p>
+            <p>Customer: <span id="r-cust-name"></span></p>
+            <p>Payment: <span id="r-pay-mode"></span></p>
             <p>Date: <span id="r-date"></span></p>
         </div>
         <p style="margin: 5px 0;">--------------------------------</p>
@@ -201,14 +219,25 @@
             document.getElementById('grand-total').innerText = `$${grandTotal.toFixed(2)}`;
         }
 
+        /**
+         * Updated Function to send Customer and Payment info to Python
+         */
         function generateBill() {
             if (cart.length === 0) return alert("Cart is empty!");
+
             let totalText = document.getElementById('grand-total').innerText.replace('$', '');
+            let customerName = document.getElementById('cust-name').value;
+            let paymentMode = document.getElementById('pay-mode').value;
             
             fetch('/save_bill', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ total: parseFloat(totalText), items: cart })
+                body: JSON.stringify({ 
+                    total: parseFloat(totalText), 
+                    items: cart,
+                    customer: customerName, // Sending Name
+                    mode: paymentMode      // Sending Mode (Cash/Card/Online)
+                })
             })
             .then(response => response.json())
             .then(data => {
@@ -216,16 +245,25 @@
                     alert(data.message);
                     cart = []; 
                     updateBillUI(); 
-                    window.location.reload();
+                    window.location.reload(); 
                 }
             });
         }
 
+        /**
+         * Updated Print Function to show customer and payment mode on receipt
+         */
         function printReceipt() {
             if (cart.length === 0) return alert("Cart is empty!");
+            
             const now = new Date();
             document.getElementById('r-date').innerText = now.toLocaleString();
             document.getElementById('r-bill-no').innerText = document.getElementById('current-invoice-no').innerText;
+            
+            // Populate new receipt fields
+            document.getElementById('r-cust-name').innerText = document.getElementById('cust-name').value || "Guest";
+            document.getElementById('r-pay-mode').innerText = document.getElementById('pay-mode').value;
+
             const rBody = document.getElementById('receipt-body');
             rBody.innerHTML = '';
             cart.forEach(item => {
