@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SuperMarket - Admin Reports</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand"><i class="fas fa-shopping-basket"></i><span>SuperMarket</span></div>
+            <nav class="nav-links">
+    <!-- 1. Dashboard (Only visible to Admin) -->
+    {% if session['role'] == 'Admin' %}
+    <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+    {% endif %}
+
+    <!-- 2. Products (Visible to all) -->
+    <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
+
+    <!-- 3. Billing (Visible to all) -->
+    <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+
+    <!-- 4. Sales History & Reports (Only visible to Admin) -->
+    {% if session['role'] == 'Admin' %}
+    <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
+    <!-- Inventory Reports is the current page, so it gets the 'active' class -->
+    <a href="/reports" class="nav-item active"><i class="fas fa-chart-line"></i> Inventory Reports</a>
+    {% endif %}
+</nav>
+            <div class="sidebar-footer"><a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h2>Business Intelligence Reports</h2>
+                <p>Clean data insights for Admin: <strong>{{ session['user'] }}</strong></p>
+            </header>
+
+            <!-- 1. Financial Summary Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <p>Inventory Cost (Buying)</p>
+                    <h3>${{ "%.2f"|format(investment) }}</h3>
+                </div>
+                <div class="stat-card">
+                    <p>Inventory Value (Selling)</p>
+                    <h3>${{ "%.2f"|format(revenue) }}</h3>
+                </div>
+                <div class="stat-card blue-card">
+                    <p>Potential Profit</p>
+                    <h3 style="color: #28a745;">+ ${{ "%.2f"|format(profit) }}</h3>
+                </div>
+            </div>
+
+            <div class="products-layout-grid" style="margin-top: 25px;">
+                <!-- 2. Low Stock Alert Table -->
+                <div class="data-card">
+                    <h3 style="color: #ba1a1a;"><i class="fas fa-exclamation-triangle"></i> Low Stock Alert</h3>
+                    <table class="inventory-display-table" style="margin-top: 15px;">
+                        <thead><tr><th>Item Name</th><th>Current Stock</th></tr></thead>
+                        <tbody>
+                            {% for item in low_stock %}
+                            <tr>
+                                <td>{{ item['name'] }}</td>
+                                <td style="color: red; font-weight: bold;">{{ item['stock'] }} {{ item['unit'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 3. Supplier Stock Distribution -->
+                <div class="data-card">
+                    <h3><i class="fas fa-truck"></i> Supplier Distribution</h3>
+                    <table class="inventory-display-table" style="margin-top: 15px;">
+                        <thead><tr><th>Supplier Name</th><th>Total Products</th></tr></thead>
+                        <tbody>
+                            {% for row in suppliers %}
+                            <tr>
+                                <td>{{ row['supplier'] if row['supplier'] else 'Not Assigned' }}</td>
+                                <td>{{ row['item_count'] }} Items</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

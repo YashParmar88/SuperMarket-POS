@@ -20,19 +20,28 @@
                 <span>SuperMarket</span>
             </div>
             
-            <nav class="nav-links">
-                <!-- Logic: Only Admin can see the Dashboard and History links -->
-                {% if session['role'] == 'Admin' %}
-                <a href="/dashboard" class="nav-item active"><i class="fas fa-th-large"></i> Dashboard</a>
-                {% endif %}
+          <nav class="nav-links">
+    <!-- 1. Dashboard (Admin Only) -->
+    {% if session['role'] == 'Admin' %}
+    <a href="/dashboard" class="nav-item {% if request.path == '/dashboard' %}active{% endif %}"><i class="fas fa-th-large"></i> Dashboard</a>
+    {% endif %}
 
-                <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
-                <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+    <!-- 2. Products (All) -->
+    <a href="/products" class="nav-item {% if request.path == '/products' %}active{% endif %}"><i class="fas fa-box"></i> Products</a>
 
-                {% if session['role'] == 'Admin' %}
-                <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
-                {% endif %}
-            </nav>
+    <!-- 3. Billing (All) -->
+    <a href="/billing" class="nav-item {% if request.path == '/billing' %}active{% endif %}"><i class="fas fa-calculator"></i> Billing Counter</a>
+
+    <!-- 4. Sales History (Admin Only) -->
+    {% if session['role'] == 'Admin' %}
+    <a href="/history" class="nav-item {% if request.path == '/history' %}active{% endif %}"><i class="fas fa-history"></i> Sales History</a>
+    {% endif %}
+
+    <!-- 5. Inventory Reports (Admin Only) -->
+    {% if session['role'] == 'Admin' %}
+    <a href="/reports" class="nav-item {% if request.path == '/reports' %}active{% endif %}"><i class="fas fa-chart-line"></i> Inventory Reports</a>
+    {% endif %}
+</nav>
 
             <div class="sidebar-footer">
                 <!-- Redirects to Python logout route to clear session -->

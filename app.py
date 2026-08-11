@@ -157,6 +157,44 @@ def delete_product(id):
     conn.commit(); conn.close()
     return redirect(url_for('products'))
 
+
+# Page 6: Admin Reports Logic (Simple & Professional)
+@app.route('/reports')
+def reports():
+    if 'user' not in session or session['role'] != 'Admin':
+        flash("Unauthorized access!")
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    
+    # 1. Calculate Total Investment (Purchase Price * Stock)
+    inventory_data = conn.execute('SELECT SUM(purchase_price * stock) FROM products').fetchone()[0] or 0
+    
+    # 2. Calculate Expected Revenue (Selling Price * Stock)
+    revenue_data = conn.execute('SELECT SUM(price * stock) FROM products').fetchone()[0] or 0
+    
+    # 3. Calculate Projected Profit
+    projected_profit = revenue_data - inventory_data
+
+    # 4. Get list of Low Stock Items (less than 10)
+    low_stock_items = conn.execute('SELECT name, stock, unit FROM products WHERE stock < 10').fetchall()
+
+    # 5. Get Supplier wise Summary (Simple count)
+    supplier_summary = conn.execute('SELECT supplier, COUNT(*) as item_count FROM products GROUP BY supplier').fetchall()
+
+    conn.close()
+
+    return render_template('reports.html', 
+                           investment=inventory_data, 
+                           revenue=revenue_data, 
+                           profit=projected_profit,
+                           low_stock=low_stock_items,
+                           suppliers=supplier_summary)
+
+
+
+
+
 @app.route('/logout')
 def logout():
     session.clear()

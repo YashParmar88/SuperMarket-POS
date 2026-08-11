@@ -19,19 +19,25 @@
                 <i class="fas fa-shopping-basket"></i>
                 <span>SuperMarket</span>
             </div>
-            <nav class="nav-links">
-                <!-- Restrict Dashboard and History links to Admins only -->
-                {% if session['role'] == 'Admin' %}
-                <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
-                {% endif %}
+          <nav class="nav-links">
+    <!-- 1. Dashboard (Admin Only) -->
+    {% if session['role'] == 'Admin' %}
+    <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+    {% endif %}
 
-                <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
-                <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+    <!-- 2. Products (All) -->
+    <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
 
-                {% if session['role'] == 'Admin' %}
-                <a href="/history" class="nav-item active"><i class="fas fa-history"></i> Sales History</a>
-                {% endif %}
-            </nav>
+    <!-- 3. Billing (All) -->
+    <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+
+    <!-- 4. Sales & Reports (Admin Only) -->
+    {% if session['role'] == 'Admin' %}
+    <!-- Sales History is active here -->
+    <a href="/history" class="nav-item active"><i class="fas fa-history"></i> Sales History</a>
+    <a href="/reports" class="nav-item"><i class="fas fa-chart-line"></i> Inventory Reports</a>
+    {% endif %}
+</nav>
             <div class="sidebar-footer">
                 <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
