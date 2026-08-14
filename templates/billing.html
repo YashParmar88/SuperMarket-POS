@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperMarket - Advanced Billing</title>
+    <title>SuperMarket - Professional Billing</title>
     <!-- External fonts and icon libraries -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,72 +13,61 @@
         .cart-qty-input { width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-weight: 600; }
         .customer-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; font-size: 14px; }
         .discount-badge { background: #28a745; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 5px; }
+        
+        /* Custom Button Styles */
+        .btn-done { background: #003f87; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; }
+        .post-billing-actions { display: none; flex-direction: column; gap: 10px; margin-top: 20px; }
     </style>
 </head>
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- 1. Sidebar Section with Role Access Control -->
+        <!-- 1. Sidebar Section -->
         <aside class="sidebar">
             <div class="sidebar-brand"><i class="fas fa-shopping-basket"></i><span>SuperMarket</span></div>
-           <nav class="nav-links">
-    <!-- 1. Dashboard (Admin Only) -->
-    {% if session['role'] == 'Admin' %}
-    <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
-    {% endif %}
-
-    <!-- 2. Products (All) -->
-    <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
-
-    <!-- 3. Billing (All) - Current Page is active -->
-    <a href="/billing" class="nav-item active"><i class="fas fa-calculator"></i> Billing Counter</a>
-
-    <!-- 4. Sales & Reports (Admin Only) -->
-    {% if session['role'] == 'Admin' %}
-    <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
-    <a href="/reports" class="nav-item"><i class="fas fa-chart-line"></i> Inventory Reports</a>
-    {% endif %}
-</nav>
+            <nav class="nav-links">
+                {% if session['role'] == 'Admin' %}<a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>{% endif %}
+                <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
+                <a href="/billing" class="nav-item active"><i class="fas fa-calculator"></i> Billing Counter</a>
+                {% if session['role'] == 'Admin' %}
+                <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
+                <a href="/reports" class="nav-item"><i class="fas fa-chart-line"></i> Inventory Reports</a>
+                {% endif %}
+            </nav>
             <div class="sidebar-footer"><a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
         </aside>
 
-        <!-- 2. Main Billing Workspace -->
+        <!-- 2. Main Workspace -->
         <main class="main-content">
             <header class="top-header">
-                <h2>Billing Counter <small style="font-size: 14px; color: #64748b; font-weight: 400;">(User: {{ session['user'] }})</small></h2>
-                <span>Invoice: <strong id="current-invoice-no">#INV-2024-001</strong></span>
+                <h2>Billing Counter <small style="font-size: 14px; color: #64748b;">(User: {{ session['user'] }})</small></h2>
+                <span>Invoice: <strong id="current-invoice-no">#INV-{{ range(1000, 9999) | random }}</strong></span>
             </header>
 
             <div class="billing-container">
-                <!-- Left Section: Product Selection -->
+                <!-- Product Selection Area -->
                 <div class="selection-area">
                     <div class="search-section">
                         <input type="text" id="billingSearch" placeholder="Search products..." onkeyup="filterCards()">
                         <i class="fas fa-search" style="color: #94a3b8; padding-top: 10px;"></i>
                     </div>
-
                     <div class="quick-products-grid">
                         {% for item in products %}
-                        <!-- Passing Discount value from database to JavaScript -->
                         <div class="p-card" onclick="addToBill('{{ item['name'] }}', {{ item['price'] }}, '{{ item['unit'] }}', {{ item['discount'] }})">
-                            <p><strong>{{ item['name'] }}</strong> 
-                                {% if item['discount'] > 0 %}
-                                <span class="discount-badge">{{ item['discount'] }}% OFF</span>
-                                {% endif %}
-                            </p>
-                            <span style="color: #003f87; font-weight: bold;">${{ item['price'] }} / {{ item['unit'] }}</span>
-                            <br><small style="color: #64748b;">Supplier: {{ item['supplier'] }}</small>
+                            <p><strong>{{ item['name'] }}</strong> {% if item['discount'] > 0 %}<span class="discount-badge">{{ item['discount'] }}% OFF</span>{% endif %}</p>
+                            <!-- Localized to Indian Rupee -->
+                            <span style="color: #003f87; font-weight: bold;">₹{{ item['price'] }} / {{ item['unit'] }}</span>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
 
-                <!-- Right Section: Cart & Totals -->
+                <!-- Bill Summary Card -->
                 <div class="bill-card">
                     <h3>Current Bill</h3>
                     <div class="customer-section" style="margin-top: 15px;">
                         <input type="text" id="cust-name" class="customer-input" placeholder="Customer Name (Optional)">
-                        <select id="pay-mode" class="customer-input" style="background-color: #f8f9fa; font-weight: 600;">
+                        <select id="pay-mode" class="customer-input">
                             <option value="Cash">Cash Payment</option>
                             <option value="Card">Card Payment</option>
                             <option value="Online">Online / UPI</option>
@@ -91,42 +80,41 @@
                     </table>
 
                     <div class="bill-summary">
-                        <div class="summary-row"><span>Subtotal:</span> <strong id="subtotal">$0.00</strong></div>
-                        <div class="summary-row"><span>Tax (%) :</span> <input type="number" id="tax-rate" value="5" onchange="updateBillUI()" style="width: 50px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-weight: bold;"></div>
-                        <div class="summary-row grand-total"><span>Grand Total:</span> <strong id="grand-total">$0.00</strong></div>
+                        <!-- Localized currency symbols in labels -->
+                        <div class="summary-row"><span>Subtotal:</span> <strong id="subtotal">₹0.00</strong></div>
+                        <div class="summary-row"><span>Tax (%) :</span> <input type="number" id="tax-rate" value="5" onchange="updateBillUI()" style="width: 50px; text-align: center;"></div>
+                        <div class="summary-row grand-total"><span>Grand Total:</span> <strong id="grand-total">₹0.00</strong></div>
                     </div>
 
                     <div class="bill-actions">
-                        <button class="btn-print" onclick="printReceipt()"><i class="fas fa-print"></i> Print Receipt</button>
-                        <button class="btn-complete" onclick="generateBill()">Generate Bill <i class="fas fa-check"></i></button>
+                        <button id="gen-btn" class="btn-complete" onclick="generateBill()">Generate Bill <i class="fas fa-check"></i></button>
+                        <div id="after-gen-actions" class="post-billing-actions">
+                            <button class="btn-print" onclick="printReceipt()"><i class="fas fa-print"></i> Print Receipt</button>
+                            <button class="btn-done" onclick="resetBilling()">Next Bill (Done) <i class="fas fa-arrow-right"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Hidden Receipt -->
+    <!-- Hidden Receipt Template Localized -->
     <div id="thermal-receipt" class="print-only">
         <h1 style="text-align: center; font-size: 20px;">SUPERMARKET STORE</h1>
-        <p>Customer: <span id="r-cust-name"></span> | Mode: <span id="r-pay-mode"></span></p>
+        <p>Customer: <span id="r-cust-name"></span> | Payment: <span id="r-pay-mode"></span></p>
         <p>Date: <span id="r-date"></span></p><hr>
         <table style="width: 100%; font-size: 12px;" id="receipt-body"></table><hr>
         <p style="text-align: right; font-weight: bold;">TOTAL: <span id="r-grand-total"></span></p>
     </div>
 
-    <!-- 3. Updated Billing Logic Engine -->
     <script>
         let cart = [];
 
-        /**
-         * Enhanced addToBill to handle product specific discounts
-         */
         function addToBill(name, price, unit, discount) {
             let existingItem = cart.find(item => item.name === name);
             if (existingItem) {
                 existingItem.qty += (unit === 'Pcs' ? 1 : 0.5);
             } else {
-                // We store the original price and discount percentage
                 cart.push({ name, price, qty: 1, unit, discount });
             }
             updateBillUI();
@@ -147,7 +135,7 @@
         }
 
         /**
-         * UI Update Logic with Auto-Discount Calculation
+         * Logic updated to use Indian Rupee (₹)
          */
         function updateBillUI() {
             const billBody = document.getElementById('bill-body');
@@ -155,18 +143,14 @@
             let subtotal = 0;
 
             cart.forEach((item) => {
-                // Calculating net price after applying discount
                 let discountedPrice = item.price * (1 - (item.discount / 100));
                 let itemTotal = discountedPrice * item.qty;
                 subtotal += itemTotal;
-
                 billBody.innerHTML += `
                     <tr>
-                        <td>${item.name} <br><small style="color:gray">${item.unit} (${item.discount}% Off)</small></td>
-                        <td style="text-align: center;">
-                            <input type="number" step="0.01" class="cart-qty-input" value="${item.qty}" onchange="updateManualQty('${item.name}', this.value)">
-                        </td>
-                        <td>$${itemTotal.toFixed(2)}</td>
+                        <td>${item.name}</td>
+                        <td style="text-align: center;"><input type="number" step="0.01" class="cart-qty-input" value="${item.qty}" onchange="updateManualQty('${item.name}', this.value)"></td>
+                        <td>₹${itemTotal.toFixed(2)}</td>
                         <td><i class="fas fa-trash-alt" style="color:red; cursor:pointer;" onclick="removeFromCart('${item.name}')"></i></td>
                     </tr>
                 `;
@@ -176,24 +160,43 @@
             let taxValue = subtotal * (taxPercent / 100);
             let grandTotal = subtotal + taxValue;
 
-            document.getElementById('subtotal').innerText = `$${subtotal.toFixed(2)}`;
-            document.getElementById('grand-total').innerText = `$${grandTotal.toFixed(2)}`;
+            // Updated innerText to show Rupee symbol
+            document.getElementById('subtotal').innerText = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('grand-total').innerText = `₹${grandTotal.toFixed(2)}`;
         }
 
+        /**
+         * Updated to strip the Rupee (₹) symbol before sending data to Python
+         */
         function generateBill() {
             if (cart.length === 0) return alert("Cart is empty!");
+
+            // CRITICAL: We replace '₹' with empty string to get the pure number
+            let totalText = document.getElementById('grand-total').innerText.replace('₹', '');
+            let totalValue = parseFloat(totalText);
+
             fetch('/save_bill', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    total: parseFloat(document.getElementById('grand-total').innerText.replace('$', '')), 
+                    total: totalValue, 
                     items: cart,
                     customer: document.getElementById('cust-name').value,
                     mode: document.getElementById('pay-mode').value
                 })
-            }).then(response => response.json()).then(data => {
-                if (data.success) { alert(data.message); window.location.reload(); }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Bill Saved Successfully!");
+                    document.getElementById('gen-btn').style.display = 'none';
+                    document.getElementById('after-gen-actions').style.display = 'flex';
+                }
             });
+        }
+
+        function resetBilling() {
+            window.location.reload();
         }
 
         function printReceipt() {
@@ -202,11 +205,11 @@
             document.getElementById('r-date').innerText = now.toLocaleString();
             document.getElementById('r-cust-name').innerText = document.getElementById('cust-name').value || "Guest";
             document.getElementById('r-pay-mode').innerText = document.getElementById('pay-mode').value;
-            const rBody = document.getElementById('receipt-body');
-            rBody.innerHTML = '';
+            const rBody = document.getElementById('receipt-body'); rBody.innerHTML = '';
             cart.forEach(item => {
                 let discountedPrice = item.price * (1 - (item.discount / 100));
-                rBody.innerHTML += `<tr><td>${item.name}</td><td align="center">${item.qty}</td><td align="right">$${(discountedPrice * item.qty).toFixed(2)}</td></tr>`;
+                // Printing receipt with Rupee symbol
+                rBody.innerHTML += `<tr><td style="padding:4px 0">${item.name}</td><td align="center">${item.qty}</td><td align="right">₹${(discountedPrice * item.qty).toFixed(2)}</td></tr>`;
             });
             document.getElementById('r-grand-total').innerText = document.getElementById('grand-total').innerText;
             window.print();
@@ -215,9 +218,9 @@
         function filterCards() {
             let input = document.getElementById('billingSearch').value.toLowerCase();
             let cards = document.getElementsByClassName('p-card');
-            for (let i = 0; i < cards.length; i++) {
-                let name = cards[i].getElementsByTagName('p')[0].innerText.toLowerCase();
-                cards[i].style.display = name.includes(input) ? "block" : "none";
+            for (let c of cards) {
+                let name = c.getElementsByTagName('p')[0].innerText.toLowerCase();
+                c.style.display = name.includes(input) ? "block" : "none";
             }
         }
     </script>

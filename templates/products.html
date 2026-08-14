@@ -84,11 +84,11 @@
                         <div class="form-row">
                             <!-- Buying Price vs Selling Price -->
                             <div class="form-field">
-                                <label>Purchase Price ($)</label>
+                                <label>Purchase Price (₹)</label>
                                 <input type="number" name="purchase_price" step="0.01" placeholder="Buying cost" required>
                             </div>
                             <div class="form-field">
-                                <label>Selling Price ($)</label>
+                                <label>Selling Price (₹)</label>
                                 <input type="number" name="price" step="0.01" placeholder="Price to customer" required>
                             </div>
                         </div>
@@ -157,7 +157,7 @@
                                 <td style="text-transform: capitalize;"><strong>{{ item['name'] }}</strong><br><small style="color: gray;">{{ item['supplier'] }}</small></td>
                                 <td><span class="type-tag">{{ item['category'] }}</span></td>
                                 <td>{{ item['unit'] }}</td>
-                                <td>${{ "%.2f"|format(item['price']) }}</td>
+                                <td>₹{{ "%.2f"|format(item['price']) }}</td>
                                 <!-- Displaying Discount % -->
                                 <td><span style="color: #28a745; font-weight: bold;">{{ item['discount'] }}%</span></td>
                                 <td class="{% if item['stock'] < 5 %}low-stock-alert{% endif %}">

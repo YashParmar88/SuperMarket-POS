@@ -9,6 +9,7 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
+/* --- Login Page Styles --- */
 body.login-page {
     background: radial-gradient(circle, #f0f7ff 0%, #dbeafe 100%);
     height: 100vh;
@@ -67,18 +68,15 @@ body.login-page {
     display: flex; justify-content: center; align-items: center; gap: 10px;
 }
 
-
-
-
-
-/* --- Dashboard Page Design --- */
+/* --- Dashboard & Navigation Setup --- */
 .dashboard-wrapper {
-    display: flex; /* Sidebar aur Content ko aaju-baaju rakhne ke liye */
-    min-height: 100vh;
+    display: flex; 
+    height: 100vh; /* Locks the page height to screen size */
+    overflow: hidden; /* Prevents the whole browser from scrolling */
     background-color: #f8f9fa;
 }
 
-/* Sidebar Styling */
+/* Fixed Sidebar */
 .sidebar {
     width: 260px;
     background: white;
@@ -86,6 +84,7 @@ body.login-page {
     display: flex;
     flex-direction: column;
     padding: 30px 20px;
+    height: 100vh;
 }
 
 .sidebar-brand {
@@ -110,15 +109,14 @@ body.login-page {
     font-weight: 500;
 }
 
-.nav-item.active {
-    background: #e7f1ff;
-    color: #003f87;
-}
+.nav-item.active { background: #e7f1ff; color: #003f87; }
 
-/* Main Content Area */
+/* Main Content Area with independent scroll */
 .main-content {
-    flex: 1; /* Ye bachi hui saari jagah le lega */
-    padding: 40px;
+    flex: 1;
+    padding: 30px 40px;
+    overflow-y: auto; 
+    height: 100vh;
 }
 
 .top-header {
@@ -141,7 +139,7 @@ body.login-page {
 /* Stats Cards Grid */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 barabar columns banane ke liye */
+    grid-template-columns: repeat(3, 1fr); 
     gap: 25px;
     margin-bottom: 40px;
 }
@@ -155,7 +153,7 @@ body.login-page {
 
 .blue-card { background: #003f87; color: white; }
 
-/* Table Styling */
+/* Table and General Data Card Styling */
 .recent-section {
     background: white;
     padding: 25px;
@@ -183,87 +181,43 @@ body.login-page {
     font-size: 13px;
 }
 
-
-
-
-
-/* --- Products Page Grid Layout --- */
-/* --- Products Page Workspace Styles --- */
-
-/* Grid layout to keep Form on left and Table on right */
+/* --- Products Page & Reports: Fixed Headers & Internal Scroll --- */
 .products-layout-grid {
     display: grid;
-    grid-template-columns: 350px 1fr; /* Fixed width for form, flexible for table */
+    grid-template-columns: 350px 1fr; 
     gap: 25px;
     margin-top: 25px;
+    align-items: start; /* Prevents stretching of the smaller card */
 }
 
-/* Styling for both Form and Table container cards */
 .data-card {
     background: #ffffff;
     padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Soft shadow for modern look */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    
+    /* Internal scroll logic for long lists */
+    max-height: 500px; 
+    overflow-y: auto; 
+    position: relative;
 }
 
-/* Space between input fields in the form */
-.form-field {
-    margin-bottom: 15px;
-}
-
-.form-field label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #424752;
-}
-
-.form-field input, .form-field select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #c2c6d4;
-    border-radius: 8px;
-    outline: none;
-    font-family: 'Inter', sans-serif;
-}
-
-/* Horizontal row for Price and Stock inputs */
-.form-row {
-    display: flex;
-    gap: 15px;
-}
-
-/* Main action button styling */
-.btn-save-data {
-    width: 100%;
-    background: #003f87;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.btn-save-data:hover {
-    background: #0056b3;
-}
-
-/* Product inventory table styling */
 .inventory-display-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
 }
 
-.inventory-display-table th {
-    background: #e7f1ff; /* Light blue header for contrast */
-    padding: 12px;
-    text-align: left;
-    font-size: 14px;
+/* Sticky header: Name/Category line stays at top */
+.inventory-display-table thead th {
+    position: sticky;
+    top: -25px; /* Aligns with card padding */
+    background: #e7f1ff;
     color: #003f87;
+    z-index: 10;
+    padding: 15px 12px;
+    text-align: left;
+    border-bottom: 2px solid #003f87;
 }
 
 .inventory-display-table td {
@@ -271,288 +225,98 @@ body.login-page {
     border-bottom: 1px solid #f0eded;
 }
 
-/* Visual tags for category and low stock status */
-.type-tag {
-    background: #f0f4f8;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 12px;
+.form-field { margin-bottom: 15px; }
+.form-field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #424752; }
+.form-field input, .form-field select {
+    width: 100%; padding: 10px; border: 1px solid #c2c6d4; border-radius: 8px; outline: none; font-family: 'Inter', sans-serif;
 }
+.form-row { display: flex; gap: 15px; }
 
-.low-stock-alert {
-    color: #ba1a1a; /* Red color for low stock warnings */
-    font-weight: 700;
+.btn-save-data {
+    width: 100%; background: #003f87; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s;
 }
+.btn-save-data:hover { background: #0056b3; }
 
-/* Top search container styling */
+.type-tag { background: #f0f4f8; padding: 4px 10px; border-radius: 4px; font-size: 12px; }
+.low-stock-alert { color: #ba1a1a; font-weight: 700; }
+
 .search-container {
-    background: white;
-    padding: 8px 20px;
-    border-radius: 50px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border: 1px solid #ddd;
-    width: fit-content;
+    background: white; padding: 8px 20px; border-radius: 50px; display: flex; align-items: center; gap: 10px; border: 1px solid #ddd; width: fit-content;
 }
+.search-container input { border: none; outline: none; width: 250px; }
 
-.search-container input {
-    border: none;
-    outline: none;
-    width: 250px;
-}
-
-
-
-
-
-/* --- Billing Counter Styles --- */
-
+/* --- Billing Counter Alignment & Scroll Fix --- */
 .billing-container {
     display: grid;
-    grid-template-columns: 1fr 400px; /* Left takes more space, Right is fixed for bill */
+    grid-template-columns: 1fr 400px; 
     gap: 25px;
     margin-top: 20px;
+    align-items: start; /* Stops right card from stretching */
+}
+
+/* Scrollable area for product selection */
+.selection-area {
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+    padding-right: 10px;
 }
 
 .search-section {
-    display: flex;
-    gap: 10px;
-    background: white;
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex; gap: 10px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px;
 }
-
-.search-section input {
-    flex: 1;
-    border: 1px solid #ddd;
-    padding: 10px;
-    border-radius: 6px;
-    outline: none;
-}
+.search-section input { flex: 1; border: 1px solid #ddd; padding: 10px; border-radius: 6px; outline: none; }
 
 .quick-products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px;
 }
 
 .p-card {
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: 0.3s;
+    background: white; padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid #e2e8f0; transition: 0.3s;
 }
+.p-card:hover { border-color: #003f87; transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-.p-card:hover { border-color: #003f87; }
-
+/* Compact Bill Card */
 .bill-card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    height: fit-content;
+    background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    max-height: calc(100vh - 100px); overflow-y: auto;
 }
 
-.bill-table {
-    width: 100%;
-    margin-top: 20px;
-    border-collapse: collapse;
-}
-
+.bill-table { width: 100%; border-collapse: collapse; }
 .bill-table th { text-align: left; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; font-size: 14px; }
 .bill-table td { padding: 10px 0; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
 
-.bill-summary {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 2px dashed #eee;
-}
-
+.bill-summary { margin-top: 20px; padding-top: 15px; border-top: 2px dashed #eee; }
 .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
 .grand-total { font-size: 20px; color: #003f87; font-weight: 700; border-top: 1px solid #eee; padding-top: 10px; }
 
 .bill-actions { display: grid; gap: 10px; margin-top: 20px; }
 .btn-print { background: #6c757d; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; }
-.btn-complete { background: #28a745; color: white; border: none; padding: 15px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 16px; }
+.btn-complete { background: #28a745; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer; }
 
-
-
-
-
-/* --- Sales History Page Styles --- */
-
-.history-table-card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    margin-top: 20px;
-}
-
-/* Payment Badges color coding */
-.pay-badge {
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
+/* --- Sales History & Global Helpers --- */
+.history-table-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-top: 20px; }
+.pay-badge { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; }
 .pay-badge.cash { background: #e2e8f0; color: #475569; }
 .pay-badge.card { background: #ebf8ff; color: #2b6cb0; }
 .pay-badge.digital { background: #faf5ff; color: #6b46c1; }
 
-.btn-outline {
-    background: white;
-    border: 1px solid #ddd;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    margin-left: 10px;
-}
+.btn-qty { background: #e2e8f0; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; }
+.print-only { display: none; }
 
-.btn-view-small {
-    background: #003f87;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-}
+/* Professional Scrollbar Design */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-.header-buttons {
-    display: flex;
-    align-items: center;
-}
-
-
-
-/* --- Cart Qty Controls Design --- */
-.qty-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-qty {
-    background: #e2e8f0;
-    border: none;
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-qty:hover {
-    background: #cbd5e1;
-}
-
-.delete-icon {
-    color: #ef4444; /* Red color for delete */
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.delete-icon:hover {
-    color: #b91c1c;
-}
-
-
-
-
-/* Add this around Line 475 (Outside of @media print) */
-.print-only {
-    display: none;
-}
-
-
-
-
-
-
-
-/* ---  Print Logic --- */
-
-
+/* Final Print Logic */
 @media print {
-    /* 1. Tell browser to HIDE its own headers/footers (Date, URL, Title) */
-    @page {
-        margin: 0; /* Removes the space where browser puts its text */
-        size: auto;
-    }
-
-    body * {
-        visibility: hidden;
-    }
-
-    #thermal-receipt, #thermal-receipt * {
-        visibility: visible;
-    }
-
-    /* 2. Professional Receipt Box Styling */
+    @page { margin: 0; size: auto; }
+    body * { visibility: hidden; }
+    #thermal-receipt, #thermal-receipt * { visibility: visible; }
     #thermal-receipt {
-        display: block !important;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        top: 10mm; /* Thoda sa gap top se */
-        width: 75mm !important; /* Perfect standard width */
-        padding: 5mm !important;
-        background: white !important;
-        color: black !important;
-        font-family: 'Courier New', Courier, monospace;
-        border: 1px solid #eee !important; /* Very light border for preview */
-    }
-
-    /* 3. Fix Text Alignment inside receipt */
-    .receipt-header {
-        text-align: center;
-        margin-bottom: 15px;
-    }
-
-    .receipt-header h1 {
-        font-size: 18px;
-        font-weight: bold;
-        text-transform: uppercase;
-        margin-bottom: 5px;
-    }
-
-    .receipt-header p {
-        font-size: 11px;
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    .receipt-table {
-        width: 100%;
-        font-size: 12px;
-        margin: 10px 0;
-    }
-
-    .receipt-table th {
-        border-bottom: 1px dashed #000;
-        padding-bottom: 5px;
-    }
-
-    .receipt-table td {
-        padding: 4px 0;
-    }
-
-    .receipt-totals {
-        border-top: 1px dashed #000;
-        padding-top: 10px;
-        text-align: right;
+        display: block !important; position: absolute; left: 50%; transform: translateX(-50%); top: 10mm;
+        width: 75mm !important; padding: 5mm !important; background: white !important; color: black !important;
+        font-family: 'Courier New', Courier, monospace; border: 1px solid #eee !important;
     }
 }
