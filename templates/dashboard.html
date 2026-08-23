@@ -20,36 +20,30 @@
                 <span>SuperMarket</span>
             </div>
             
-          <nav class="nav-links">
-    <!-- 1. Dashboard (Admin Only) -->
-    {% if session['role'] == 'Admin' %}
-    <a href="/dashboard" class="nav-item {% if request.path == '/dashboard' %}active{% endif %}"><i class="fas fa-th-large"></i> Dashboard</a>
-    {% endif %}
+            <nav class="nav-links">
+                <!-- Dashboard link: Only visible to Admins -->
+                {% if session['role'] == 'Admin' %}
+                <a href="/dashboard" class="nav-item {% if request.path == '/dashboard' %}active{% endif %}"><i class="fas fa-th-large"></i> Dashboard</a>
+                {% endif %}
 
-    <!-- 2. Products (All) -->
-    <a href="/products" class="nav-item {% if request.path == '/products' %}active{% endif %}"><i class="fas fa-box"></i> Products</a>
+                <!-- Products & Billing: Visible to all -->
+                <a href="/products" class="nav-item {% if request.path == '/products' %}active{% endif %}"><i class="fas fa-box"></i> Products</a>
+                <a href="/billing" class="nav-item {% if request.path == '/billing' %}active{% endif %}"><i class="fas fa-calculator"></i> Billing Counter</a>
 
-    <!-- 3. Billing (All) -->
-    <a href="/billing" class="nav-item {% if request.path == '/billing' %}active{% endif %}"><i class="fas fa-calculator"></i> Billing Counter</a>
-
-    <!-- 4. Sales History (Admin Only) -->
-    {% if session['role'] == 'Admin' %}
-    <a href="/history" class="nav-item {% if request.path == '/history' %}active{% endif %}"><i class="fas fa-history"></i> Sales History</a>
-    {% endif %}
-
-    <!-- 5. Inventory Reports (Admin Only) -->
-    {% if session['role'] == 'Admin' %}
-    <a href="/reports" class="nav-item {% if request.path == '/reports' %}active{% endif %}"><i class="fas fa-chart-line"></i> Inventory Reports</a>
-    {% endif %}
-</nav>
+                <!-- Administrative Links: Strictly for Admin Role -->
+                {% if session['role'] == 'Admin' %}
+                <a href="/history" class="nav-item {% if request.path == '/history' %}active{% endif %}"><i class="fas fa-history"></i> Sales History</a>
+                <a href="/reports" class="nav-item {% if request.path == '/reports' %}active{% endif %}"><i class="fas fa-chart-line"></i> Inventory Reports</a>
+                <a href="/suppliers" class="nav-item {% if request.path == '/suppliers' %}active{% endif %}"><i class="fas fa-truck"></i> Supplier Directory</a>
+                {% endif %}
+            </nav>
 
             <div class="sidebar-footer">
-                <!-- Redirects to Python logout route to clear session -->
                 <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </aside>
 
-        <!-- 2. Main Workspace (Right Side) -->
+        <!-- 2. Main Workspace -->
         <main class="main-content">
             <header class="top-header">
                 <!-- Personalizing the welcome message with user's name -->
@@ -57,7 +51,7 @@
                 <a href="/billing" class="btn-new-trx" style="text-decoration: none; display: inline-block;">+ New Transaction</a>
             </header>
 
-            <!-- 3. Dynamic Statistics Cards (Fetched from database) -->
+            <!-- 3. Dynamic Statistics Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <p>Total Products</p>
@@ -65,20 +59,21 @@
                 </div>
 
                 <div class="stat-card">
-                    <p>Total Sales Today</p>
+                    <!-- Updated label to clarify this is daily revenue -->
+                    <p>Total Sales (Today)</p>
                     <h3>₹{{ "%.2f"|format(s_sum) }}</h3>
                 </div>
 
                 <div class="stat-card blue-card">
                     <p>User Role</p>
-                    <!-- Shows whether current user is Admin or Cashier -->
                     <h3>{{ session['role'] }}</h3>
                 </div>
             </div>
 
-            <!-- 4. Sales Preview Table -->
+            <!-- 4. Today's Sales Preview Table (Dynamic & Auto-Resetting) -->
             <div class="recent-section">
-                <h3>System Transactions Overview</h3>
+                <!-- Updated Title to match the Daily Reset logic -->
+                <h3>Today's Transactions Overview</h3>
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -89,18 +84,21 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% for sale in recent_sales %}
                         <tr>
-                            <td>#8821</td>
-                            <td>Guest Customer</td>
-                            <td>$142.00</td>
+                            <td>#INV-{{ sale['id'] }}</td>
+                            <td style="text-transform: capitalize;">{{ sale['customer_name'] }}</td>
+                            <td style="font-weight: 700;">₹{{ "%.2f"|format(sale['total_amount']) }}</td>
                             <td><span class="status-done">Completed</span></td>
                         </tr>
+                        {% endfor %}
+
+                        <!-- Logic: If no sales recorded for TODAY, show this message -->
+                        {% if not recent_sales %}
                         <tr>
-                            <td>#8820</td>
-                            <td>Member #4412</td>
-                            <td>$89.50</td>
-                            <td><span class="status-done">Completed</span></td>
+                            <td colspan="4" style="text-align: center; color: #94a3b8; padding: 20px;">No transactions completed today yet.</td>
                         </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>

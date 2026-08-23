@@ -4,24 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SuperMarket - Products Management</title>
-    <!-- External fonts and icon libraries -->
+    <!-- Basic Fonts and Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Main project stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* Special layout adjustment for Cashier: Make table full width when form is hidden */
-        {% if session['role'] != 'Admin' %}
-        .products-layout-grid {
-            display: block !important;
+        .products-layout-grid { display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
+        
+        /* Compact Form Styling */
+        .compact-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .compact-field { margin-bottom: 12px; }
+        .compact-field label { display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 4px; text-transform: uppercase; }
+        .compact-field input, .compact-field select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; }
+        .compact-field input:focus { border-color: #003f87; }
+        
+        .btn-save-sm { width: 100%; background: #003f87; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 5px; }
+
+        /* Inventory List Table Fix */
+        .inventory-header { 
+            display: grid; grid-template-columns: 2fr 1fr 60px 80px 80px 50px;
+            background: #f1f5f9; padding: 12px 15px; font-weight: 700; font-size: 11px; 
+            text-transform: uppercase; position: sticky; top: 0; z-index: 5;
         }
-        {% endif %}
+        .inventory-item {
+            display: grid; grid-template-columns: 2fr 1fr 60px 80px 80px 50px;
+            padding: 12px 15px; border-bottom: 1px solid #f1f5f9; align-items: center; background: white;
+        }
+        .gst-tag { background: #fef3c7; color: #92400e; padding: 2px 5px; border-radius: 4px; font-size: 10px; font-weight: 800; }
     </style>
 </head>
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- 1. Sidebar Section with Role Access Control -->
+        <!-- 1. Sidebar Section -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-shopping-basket"></i>
@@ -29,182 +45,144 @@
             </div>
             
             <nav class="nav-links">
-    <!-- 1. Dashboard (Admin Only) -->
-    {% if session['role'] == 'Admin' %}
-    <a href="/dashboard" class="nav-item {% if request.path == '/dashboard' %}active{% endif %}"><i class="fas fa-th-large"></i> Dashboard</a>
-    {% endif %}
+                <!-- Dashboard (Admin Only) -->
+                {% if session['role'] == 'Admin' %}
+                <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                {% endif %}
 
-    <!-- 2. Products (All) -->
-    <a href="/products" class="nav-item {% if request.path == '/products' %}active{% endif %}"><i class="fas fa-box"></i> Products</a>
+                <!-- Products (All) -->
+                <a href="/products" class="nav-item active"><i class="fas fa-box"></i> Products</a>
 
-    <!-- 3. Billing (All) -->
-    <a href="/billing" class="nav-item {% if request.path == '/billing' %}active{% endif %}"><i class="fas fa-calculator"></i> Billing Counter</a>
+                <!-- Billing Counter (All) -->
+                <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
 
-    <!-- 4. Sales History (Admin Only) -->
-    {% if session['role'] == 'Admin' %}
-    <a href="/history" class="nav-item {% if request.path == '/history' %}active{% endif %}"><i class="fas fa-history"></i> Sales History</a>
-    {% endif %}
-
-    <!-- 5. Inventory Reports (Admin Only) -->
-    {% if session['role'] == 'Admin' %}
-    <a href="/reports" class="nav-item {% if request.path == '/reports' %}active{% endif %}"><i class="fas fa-chart-line"></i> Inventory Reports</a>
-    {% endif %}
-</nav>
+                <!-- Admin Protected Links -->
+                {% if session['role'] == 'Admin' %}
+                <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
+                <a href="/reports" class="nav-item"><i class="fas fa-chart-line"></i> Inventory Reports</a>
+                <a href="/suppliers" class="nav-item"><i class="fas fa-truck"></i> Supplier Directory</a>
+                {% endif %}
+            </nav>
 
             <div class="sidebar-footer">
                 <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </aside>
 
-        <!-- 2. Main Content Section -->
+        <!-- 2. Main Content Area -->
         <main class="main-content">
-            <header class="top-header">
-                <div class="header-info">
-                    <h2>Products Inventory</h2>
-                    <p>Logged in as: <strong>{{ session['role'] }}</strong></p>
-                </div>
-                <div class="search-container">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="productSearch" placeholder="Search name or category..." onkeyup="filterProducts()">
-                </div>
+            <header class="top-header" style="margin-bottom: 20px;">
+                <h2>Inventory Master</h2>
+                <div class="search-container"><i class="fas fa-search"></i><input type="text" id="productSearch" placeholder="Search..." onkeyup="filterProducts()"></div>
             </header>
 
             <div class="products-layout-grid">
                 
-                <!-- 3. ADD PRODUCT FORM (ONLY FOR ADMIN) -->
+                <!-- Compact Add Product Form (Admin Access Only) -->
                 {% if session['role'] == 'Admin' %}
-                <div class="data-card">
-                    <h3><i class="fas fa-plus-circle"></i> Add New Product</h3>
-                    <form class="entry-form" action="/add_product" method="POST">
-                        <div class="form-field">
+                <div class="compact-card">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;"><i class="fas fa-plus-circle"></i> New Entry</h3>
+                    <form action="/add_product" method="POST">
+                        <div class="compact-field">
                             <label>Product Name</label>
-                            <input type="text" name="name" placeholder="e.g. Fresh Apples" required>
+                            <input type="text" name="name" required>
                         </div>
                         
-                        <div class="form-row">
-                            <!-- Buying Price vs Selling Price -->
-                            <div class="form-field">
-                                <label>Purchase Price (₹)</label>
-                                <input type="number" name="purchase_price" step="0.01" placeholder="Buying cost" required>
-                            </div>
-                            <div class="form-field">
-                                <label>Selling Price (₹)</label>
-                                <input type="number" name="price" step="0.01" placeholder="Price to customer" required>
-                            </div>
+                        <div class="form-row-2">
+                            <div class="compact-field"><label>Buy (₹)</label><input type="number" step="0.01" name="purchase_price" required></div>
+                            <div class="compact-field"><label>Sell (₹)</label><input type="number" step="0.01" name="price" required></div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-field">
-                                <label>Stock Qty</label>
-                                <input type="number" name="stock" step="0.01" placeholder="Current qty" required>
-                            </div>
-                            <!-- Measurement Unit Selection -->
-                            <div class="form-field">
+                        <div class="form-row-2">
+                            <div class="compact-field"><label>Stock</label><input type="number" step="0.01" name="stock" required></div>
+                            <div class="compact-field">
                                 <label>Unit</label>
                                 <select name="unit">
-                                    <option value="Pcs">Pieces</option>
-                                    <option value="KG">Kilogram</option>
-                                    <option value="Ltr">Liter</option>
+                                    <option>Pack</option><option>Kg</option><option>Ltr</option><option>Bottle</option>
+                                    <option>Tin</option><option>Jar</option><option>Piece</option><option>Box</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-field">
-                                <label>Supplier Name</label>
-                                <input type="text" name="supplier" placeholder="Who provided this?">
-                            </div>
-                            <div class="form-field">
-                                <label>Discount (%)</label>
-                                <input type="number" name="discount" value="0" min="0" max="100">
+                        <div class="form-row-2">
+                            <div class="compact-field"><label>Supplier</label><input type="text" name="supplier"></div>
+                            <div class="compact-field">
+                                <label>GST %</label>
+                                <select name="gst_percent">
+                                    <option value="0">0%</option><option value="5" selected>5%</option>
+                                    <option value="12">12%</option><option value="18">18%</option><option value="28">28%</option>
+                                </select>
                             </div>
                         </div>
 
-                        <div class="form-field">
-                            <label>Category</label>
-                            <select name="category">  
-                                <option>Dairy & Eggs</option>
-                                <option>Fruits & Veggies</option>
-                                <option>Bakery Items</option>
-                                <option>Snacks</option>
-                            </select>
+                        <div class="form-row-2">
+                            <div class="compact-field"><label>Disc %</label><input type="number" name="discount" value="0"></div>
+                            <div class="compact-field">
+                                <label>Category</label>
+                                <!-- Updated comprehensive category list -->
+                                <select name="category">
+                                    <option>Grains & Flours</option>
+                                    <option>Dals & Pulses</option>
+                                    <option>Oils & Ghee</option>
+                                    <option>Spices</option>
+                                    <option>Ready-to-eat</option>
+                                    <option>Fresh Dairy</option>
+                                    <option>Frozen Snacks</option>
+                                    <option>Beverages & Snacks</option>
+                                    <option>Personal Care</option>
+                                    <option>Home Care & Cleaning</option>
+                                    <option>Fresh Produce</option>
+                                    <option>Household</option>
+                                    <option>Stationery</option>
+                                </select>
+                            </div>
                         </div>
-                        <button type="submit" class="btn-save-data">Save Product</button>
+
+                        <button type="submit" class="btn-save-sm">SAVE PRODUCT</button>
                     </form>
                 </div>
                 {% endif %}
 
-                <!-- 4. INVENTORY TABLE (VISIBLE TO ALL) -->
-                <div class="data-card">
-                    <h3>Current Inventory Stock</h3>
-                    <table class="inventory-display-table" id="productTable">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Unit</th>
-                                <th>Price</th>
-                                <th>Disc %</th> <!-- New Column -->
-                                <th>Stock</th>
+                <!-- Simplified Records List -->
+                <div class="compact-card" style="padding: 0; overflow-y: auto; max-height: 80vh;">
+                    <div class="inventory-header">
+                        <span>Item / Supplier</span><span>Category</span><span>GST</span><span>Price</span><span>Stock</span><span></span>
+                    </div>
+
+                    <div id="inventoryContainer">
+                        {% for item in products %}
+                        <div class="inventory-item">
+                            <div style="display:flex; flex-direction:column">
+                                <strong style="font-size:13px">{{ item['name'] }}</strong>
+                                <small style="color:gray; font-size:10px">{{ item['supplier'] }}</small>
+                            </div>
+                            <div style="font-size:11px">{{ item['category'] }}</div>
+                            <div><span class="gst-tag">{{ item['gst_percent']|int }}%</span></div>
+                            <div style="font-weight:700; color:#003f87">₹{{ item['price'] }}</div>
+                            <div style="font-weight:700">{{ item['stock'] }}</div>
+                            <div style="text-align:right">
                                 {% if session['role'] == 'Admin' %}
-                                <th>Action</th>
+                                <a href="/delete_product/{{ item['id'] }}" onclick="return confirm('Delete this product?')" style="color:#ef4444"><i class="fas fa-trash-alt"></i></a>
                                 {% endif %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in products %}
-                            <tr>
-                                <td style="text-transform: capitalize;"><strong>{{ item['name'] }}</strong><br><small style="color: gray;">{{ item['supplier'] }}</small></td>
-                                <td><span class="type-tag">{{ item['category'] }}</span></td>
-                                <td>{{ item['unit'] }}</td>
-                                <td>₹{{ "%.2f"|format(item['price']) }}</td>
-                                <!-- Displaying Discount % -->
-                                <td><span style="color: #28a745; font-weight: bold;">{{ item['discount'] }}%</span></td>
-                                <td class="{% if item['stock'] < 5 %}low-stock-alert{% endif %}">
-                                    {{ item['stock'] }}
-                                </td>
-                                {% if session['role'] == 'Admin' %}
-                                <td>
-                                    <a href="/delete_product/{{ item['id'] }}" 
-                                       onclick="return confirm('Remove this product?')" 
-                                       style="color: #ba1a1a; text-decoration: none;">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </a>
-                                </td>
-                                {% endif %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- 5. Real-time Search Logic -->
+    <!-- Live filtering script -->
     <script>
         function filterProducts() {
             let input = document.getElementById('productSearch').value.toLowerCase();
-            let table = document.getElementById('productTable');
-            let tr = table.getElementsByTagName('tr');
-
-            for (let i = 1; i < tr.length; i++) {
-                let nameCell = tr[i].getElementsByTagName('td')[0];
-                let categoryCell = tr[i].getElementsByTagName('td')[1];
-
-                if (nameCell || categoryCell) {
-                    let nameText = nameCell.textContent.toLowerCase();
-                    let categoryText = categoryCell.textContent.toLowerCase();
-
-                    if (nameText.indexOf(input) > -1 || categoryText.indexOf(input) > -1) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
-                    }
-                }
+            let items = document.getElementsByClassName('inventory-item');
+            for (let item of items) {
+                let name = item.querySelector('strong').textContent.toLowerCase();
+                item.style.display = name.includes(input) ? "grid" : "none";
             }
         }
     </script>
-
 </body>
 </html>

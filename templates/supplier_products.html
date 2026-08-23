@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Products by {{ supplier_name }}</title>
+    <!-- Standard fonts and icon libraries -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Link to your CSS file -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation (Same as all pages) -->
+        <aside class="sidebar">
+            <div class="sidebar-brand"><i class="fas fa-shopping-basket"></i><span>SuperMarket</span></div>
+            <nav class="nav-links">
+                {% if session['role'] == 'Admin' %}
+                <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                {% endif %}
+                <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
+                <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+                {% if session['role'] == 'Admin' %}
+                <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
+                <a href="/reports" class="nav-item"><i class="fas fa-chart-line"></i> Inventory Reports</a>
+                <a href="/suppliers" class="nav-item active"><i class="fas fa-truck"></i> Supplier Directory</a>
+                {% endif %}
+            </nav>
+            <div class="sidebar-footer"><a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-info">
+                    <h2>Products from: <span style="color: #003f87; text-transform: capitalize;">{{ supplier_name }}</span></h2>
+                    <p>Total items supplied by this partner: <strong>{{ products|length }}</strong></p>
+                </div>
+                <!-- Simple back button without JS -->
+                <a href="/suppliers" class="btn-new-trx" style="text-decoration: none; background-color: #64748b;">
+                    <i class="fas fa-arrow-left"></i> Back to Directory
+                </a>
+            </header>
+
+            <div class="data-card">
+                <h3><i class="fas fa-list-ul"></i> Supplier's Stock List</h3>
+                <table class="inventory-display-table" style="margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Current Stock</th>
+                            <th>Unit Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Loop to show only products of this specific supplier -->
+                        {% for item in products %}
+                        <tr>
+                            <td style="text-transform: capitalize;"><strong>{{ item['name'] }}</strong></td>
+                            <td><span class="type-tag">{{ item['category'] }}</span></td>
+                            <td class="{% if item['stock'] < 10 %}low-stock-alert{% endif %}">
+                                {{ item['stock'] }} {{ item['unit'] }}
+                            </td>
+                            <td>₹{{ "%.2f"|format(item['price']) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

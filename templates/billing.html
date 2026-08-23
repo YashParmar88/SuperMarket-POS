@@ -3,94 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperMarket - Professional Billing</title>
-    <!-- External fonts and icon libraries -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>SuperMarket - Modern POS Terminal</title>
+    <!-- Standard fonts and icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Link to global stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .cart-qty-input { width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-weight: 600; }
-        .customer-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px; font-size: 14px; }
-        .discount-badge { background: #28a745; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 5px; }
-        
-        /* Custom Button Styles */
-        .btn-done { background: #003f87; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; }
-        .post-billing-actions { display: none; flex-direction: column; gap: 10px; margin-top: 20px; }
+        /* --- PROFESSIONAL SCROLLABLE CATEGORY BAR --- */
+        .category-bar { 
+            display: flex; 
+            gap: 6px; 
+            margin-bottom: 20px; 
+            overflow-x: auto; 
+            padding: 10px 5px;
+            background: #f8fafc;
+            border-radius: 12px;
+            scrollbar-width: thin; 
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .category-bar::-webkit-scrollbar { height: 4px; }
+        .category-bar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .cat-btn { 
+            padding: 6px 14px; 
+            background: white; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 50px; 
+            font-size: 11px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            white-space: nowrap; 
+            transition: 0.3s; 
+            color: #64748b;
+        }
+        .cat-btn:hover, .cat-btn.active { background: #003f87; color: white; border-color: #003f87; box-shadow: 0 4px 10px rgba(0,63,135,0.2); }
+
+        .quick-products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .p-card { background: #fff; border: 1px solid #f1f5f9; border-radius: 16px; padding: 15px; transition: 0.3s; cursor: pointer; border-left: 5px solid #cbd5e1; }
+        .p-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); border-color: #003f87; }
+        .discount-badge { background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; }
+        .gst-label { background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; margin-left: 5px; }
+        .cart-qty-input { width: 55px; padding: 5px; border: 1px solid #e2e8f0; border-radius: 6px; text-align: center; font-weight: 700; background: #f8fafc; }
+        .post-billing-actions { display: none; flex-direction: column; gap: 10px; margin-top: 15px; }
     </style>
 </head>
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- 1. Sidebar Section -->
         <aside class="sidebar">
             <div class="sidebar-brand"><i class="fas fa-shopping-basket"></i><span>SuperMarket</span></div>
             <nav class="nav-links">
-                {% if session['role'] == 'Admin' %}<a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>{% endif %}
+                {% if session['role'] == 'Admin' %}
+                <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                {% endif %}
                 <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
                 <a href="/billing" class="nav-item active"><i class="fas fa-calculator"></i> Billing Counter</a>
                 {% if session['role'] == 'Admin' %}
                 <a href="/history" class="nav-item"><i class="fas fa-history"></i> Sales History</a>
                 <a href="/reports" class="nav-item"><i class="fas fa-chart-line"></i> Inventory Reports</a>
+                <a href="/suppliers" class="nav-item"><i class="fas fa-truck"></i> Supplier Directory</a>
                 {% endif %}
             </nav>
             <div class="sidebar-footer"><a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
         </aside>
 
-        <!-- 2. Main Workspace -->
         <main class="main-content">
-            <header class="top-header">
-                <h2>Billing Counter <small style="font-size: 14px; color: #64748b;">(User: {{ session['user'] }})</small></h2>
-                <span>Invoice: <strong id="current-invoice-no">#INV-{{ range(1000, 9999) | random }}</strong></span>
+            <header class="top-header" style="margin-bottom: 15px;">
+                <div><h2 style="font-weight: 800;">Billing Terminal</h2><small>Operator: <strong>{{ session['user'] }}</strong></small></div>
+                <span>Invoice: <strong id="current-invoice-no" style="color:#003f87">#INV-{{ range(1000, 9999) | random }}</strong></span>
             </header>
 
+            <div class="category-bar">
+                <button class="cat-btn active" onclick="filterByCategory('All', this)">All Items</button>
+                <button class="cat-btn" onclick="filterByCategory('Grains & Flours', this)">Grains & Flours</button>
+                <button class="cat-btn" onclick="filterByCategory('Dals & Pulses', this)">Dals & Pulses</button>
+                <button class="cat-btn" onclick="filterByCategory('Oils & Ghee', this)">Oils & Ghee</button>
+                <button class="cat-btn" onclick="filterByCategory('Spices', this)">Spices</button>
+                <button class="cat-btn" onclick="filterByCategory('Ready-to-eat', this)">Ready-to-eat</button>
+                <button class="cat-btn" onclick="filterByCategory('Fresh Dairy', this)">Fresh Dairy</button>
+                <button class="cat-btn" onclick="filterByCategory('Frozen Snacks', this)">Frozen Snacks</button>
+                <button class="cat-btn" onclick="filterByCategory('Beverages & Snacks', this)">Beverages & Snacks</button>
+                <button class="cat-btn" onclick="filterByCategory('Personal Care', this)">Personal Care</button>
+                <button class="cat-btn" onclick="filterByCategory('Home Care & Cleaning', this)">Home & Cleaning</button>
+                <button class="cat-btn" onclick="filterByCategory('Produce', this)">Fresh Produce</button>
+                <button class="cat-btn" onclick="filterByCategory('Kitchenware', this)">Household</button>
+                <button class="cat-btn" onclick="filterByCategory('Stationery', this)">Stationery</button>
+            </div>
+
             <div class="billing-container">
-                <!-- Product Selection Area -->
                 <div class="selection-area">
-                    <div class="search-section">
-                        <input type="text" id="billingSearch" placeholder="Search products..." onkeyup="filterCards()">
-                        <i class="fas fa-search" style="color: #94a3b8; padding-top: 10px;"></i>
+                    <div class="search-section" style="border-radius: 12px; border: 1.5px solid #e2e8f0; margin-bottom: 15px; padding: 10px;">
+                        <i class="fas fa-search" style="color: #94a3b8;"></i>
+                        <input type="text" id="billingSearch" placeholder="Search by Product Name..." onkeyup="filterCards()">
                     </div>
+
                     <div class="quick-products-grid">
                         {% for item in products %}
-                        <div class="p-card" onclick="addToBill('{{ item['name'] }}', {{ item['price'] }}, '{{ item['unit'] }}', {{ item['discount'] }})">
-                            <p><strong>{{ item['name'] }}</strong> {% if item['discount'] > 0 %}<span class="discount-badge">{{ item['discount'] }}% OFF</span>{% endif %}</p>
-                            <!-- Localized to Indian Rupee -->
-                            <span style="color: #003f87; font-weight: bold;">₹{{ item['price'] }} / {{ item['unit'] }}</span>
+                        <div class="p-card" 
+                             onclick="addToBill('{{ item['name'] }}', {{ item['price'] }}, '{{ item['unit'] }}', {{ item['discount'] }}, {{ item['gst_percent'] }})"
+                             data-category="{{ item['category'] }}">
+                            <div style="display:flex; justify-content: space-between; align-items: flex-start;">
+                                <strong style="font-size: 13px;">{{ item['name'] }}</strong>
+                                {% if item['discount'] > 0 %}<span class="discount-badge">{{ item['discount']|int }}% OFF</span>{% endif %}
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <span style="font-size: 16px; font-weight: 800; color: #003f87;">₹{{ item['price'] }}</span>
+                                <small style="color: #64748b;">/{{ item['unit'] }}</small>
+                                <span class="gst-label">{{ item['gst_percent']|int }}% GST</span>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
 
-                <!-- Bill Summary Card -->
                 <div class="bill-card">
-                    <h3>Current Bill</h3>
-                    <div class="customer-section" style="margin-top: 15px;">
-                        <input type="text" id="cust-name" class="customer-input" placeholder="Customer Name (Optional)">
-                        <select id="pay-mode" class="customer-input">
-                            <option value="Cash">Cash Payment</option>
-                            <option value="Card">Card Payment</option>
-                            <option value="Online">Online / UPI</option>
+                    <div style="display:grid; grid-template-columns: 1fr 100px; gap: 5px; margin-bottom: 15px;">
+                        <input type="text" id="cust-name" class="customer-input" placeholder="Customer Name" style="margin:0">
+                        <select id="pay-mode" class="customer-input" style="margin:0; font-weight:700; color:#003f87">
+                            <option>Cash</option><option>Online</option><option>Card</option>
                         </select>
                     </div>
 
-                    <table class="bill-table">
-                        <thead><tr><th>Item</th><th style="text-align: center;">Qty</th><th>Total</th><th></th></tr></thead>
-                        <tbody id="bill-body"></tbody>
-                    </table>
+                    <div style="min-height: 250px; overflow-y: auto;">
+                        <table class="bill-table">
+                            <thead><tr><th align="left">ITEM</th><th align="center">QTY</th><th align="right">TOTAL</th><th></th></tr></thead>
+                            <tbody id="bill-body"></tbody>
+                        </table>
+                    </div>
 
-                    <div class="bill-summary">
-                        <!-- Localized currency symbols in labels -->
-                        <div class="summary-row"><span>Subtotal:</span> <strong id="subtotal">₹0.00</strong></div>
-                        <div class="summary-row"><span>Tax (%) :</span> <input type="number" id="tax-rate" value="5" onchange="updateBillUI()" style="width: 50px; text-align: center;"></div>
-                        <div class="summary-row grand-total"><span>Grand Total:</span> <strong id="grand-total">₹0.00</strong></div>
+                    <div class="summary-box" style="margin-top: 20px; border-top: 1px dashed #ddd; padding-top: 15px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Total Items</span> <strong id="total-qty-count">0</strong></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>GST Total</span> <strong id="tax-amount">₹0.00</strong></div>
+                        <div style="display:flex; justify-content:space-between; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+                            <span style="font-weight: 800;">TOTAL PAYABLE</span>
+                            <strong id="grand-total" style="font-size: 22px; color: #003f87; font-weight: 900;">₹0.00</strong>
+                        </div>
                     </div>
 
                     <div class="bill-actions">
-                        <button id="gen-btn" class="btn-complete" onclick="generateBill()">Generate Bill <i class="fas fa-check"></i></button>
+                        <button id="gen-btn" class="btn-complete" onclick="generateBill()">GENERATE BILL <i class="fas fa-check-circle"></i></button>
                         <div id="after-gen-actions" class="post-billing-actions">
-                            <button class="btn-print" onclick="printReceipt()"><i class="fas fa-print"></i> Print Receipt</button>
-                            <button class="btn-done" onclick="resetBilling()">Next Bill (Done) <i class="fas fa-arrow-right"></i></button>
+                            <!-- Change 1: Added type="button" and event to onclick -->
+                            <button type="button" class="btn-print" onclick="printReceipt(event)"><i class="fas fa-print"></i> Print Receipt</button>
+                            <button class="btn-complete" onclick="resetBilling()" style="background: #003f87;">Next Bill</button>
                         </div>
                     </div>
                 </div>
@@ -98,130 +154,132 @@
         </main>
     </div>
 
-    <!-- Hidden Receipt Template Localized -->
     <div id="thermal-receipt" class="print-only">
         <h1 style="text-align: center; font-size: 20px;">SUPERMARKET STORE</h1>
-        <p>Customer: <span id="r-cust-name"></span> | Payment: <span id="r-pay-mode"></span></p>
-        <p>Date: <span id="r-date"></span></p><hr>
-        <table style="width: 100%; font-size: 12px;" id="receipt-body"></table><hr>
-        <p style="text-align: right; font-weight: bold;">TOTAL: <span id="r-grand-total"></span></p>
+        <p>INV: <span id="r-inv-no"></span> | CUST: <span id="r-cust-name"></span></p>
+        <p>MODE: <span id="r-pay-mode"></span> | DATE: <span id="r-date-time"></span></p>
+        <hr>
+        <table style="width: 100%; font-size: 12px;" id="receipt-body"></table>
+        <hr>
+        <p style="text-align: right; font-weight: bold; font-size: 16px;">PAID TOTAL: <span id="r-grand-total"></span></p>
     </div>
 
     <script>
         let cart = [];
 
-        function addToBill(name, price, unit, discount) {
-            let existingItem = cart.find(item => item.name === name);
-            if (existingItem) {
-                existingItem.qty += (unit === 'Pcs' ? 1 : 0.5);
-            } else {
-                cart.push({ name, price, qty: 1, unit, discount });
-            }
+        function addToBill(name, price, unit, discount, gst) {
+            let item = cart.find(i => i.name === name);
+            if (item) { item.qty += (unit === 'Kg' || unit === 'Ltr' ? 0.5 : 1); }
+            else { cart.push({ name, price, qty: 1, unit, discount, gst }); }
             updateBillUI();
         }
 
-        function updateManualQty(name, value) {
+        function manualQty(name, val) {
+            let item = cart.find(i => i.name === name);
+            if (item) { item.qty = parseFloat(val) || 0; if (item.qty <= 0) cart = cart.filter(i => i.name !== name); }
+            updateBillUI();
+        }
+
+        function updateBillUI() {
+            const body = document.getElementById('bill-body'); body.innerHTML = '';
+            let subtotal = 0; let totalGST = 0; let totalQty = 0;
+            cart.forEach((item) => {
+                let dp = item.price * (1 - (item.discount / 100));
+                let netTotal = dp * item.qty;
+                let gstAmt = netTotal * (item.gst / 100);
+                subtotal += netTotal; totalGST += gstAmt; totalQty += item.qty;
+
+                body.innerHTML += `
+                    <tr style="border-bottom: 1px solid #f8fafc;">
+                        <td style="padding: 10px 0; font-size:12px;"><strong>${item.name}</strong></td>
+                        <td style="text-align: center;">
+                            <div style="display:flex; align-items:center; gap:5px; justify-content:center;">
+                                <button onclick="changeQty('${item.name}', -1)" style="width:24px; cursor:pointer">-</button>
+                                <span>${item.qty}</span>
+                                <button onclick="changeQty('${item.name}', 1)" style="width:24px; cursor:pointer">+</button>
+                            </div>
+                        </td>
+                        <td align="right" style="font-weight:600;">₹${(netTotal + gstAmt).toFixed(2)}</td>
+                        <td align="right"><i class="fas fa-times-circle" style="color:#ef4444; cursor:pointer;" onclick="manualQty('${item.name}', 0)"></i></td>
+                    </tr>`;
+            });
+            document.getElementById('total-qty-count').innerText = totalQty.toFixed(1);
+            document.getElementById('tax-amount').innerText = `₹${totalGST.toFixed(2)}`;
+            document.getElementById('grand-total').innerText = `₹${(subtotal + totalGST).toFixed(2)}`;
+        }
+
+        function changeQty(name, delta) {
             let item = cart.find(i => i.name === name);
             if (item) {
-                item.qty = parseFloat(value) || 0;
-                if (item.qty <= 0) removeFromCart(name);
+                item.qty = Math.max(0, item.qty + delta);
+                if (item.qty === 0) cart = cart.filter(i => i.name !== name);
             }
             updateBillUI();
         }
 
-        function removeFromCart(name) {
-            cart = cart.filter(i => i.name !== name);
-            updateBillUI();
-        }
-
-        /**
-         * Logic updated to use Indian Rupee (₹)
-         */
-        function updateBillUI() {
-            const billBody = document.getElementById('bill-body');
-            billBody.innerHTML = '';
-            let subtotal = 0;
-
-            cart.forEach((item) => {
-                let discountedPrice = item.price * (1 - (item.discount / 100));
-                let itemTotal = discountedPrice * item.qty;
-                subtotal += itemTotal;
-                billBody.innerHTML += `
-                    <tr>
-                        <td>${item.name}</td>
-                        <td style="text-align: center;"><input type="number" step="0.01" class="cart-qty-input" value="${item.qty}" onchange="updateManualQty('${item.name}', this.value)"></td>
-                        <td>₹${itemTotal.toFixed(2)}</td>
-                        <td><i class="fas fa-trash-alt" style="color:red; cursor:pointer;" onclick="removeFromCart('${item.name}')"></i></td>
-                    </tr>
-                `;
-            });
-
-            let taxPercent = document.getElementById('tax-rate').value;
-            let taxValue = subtotal * (taxPercent / 100);
-            let grandTotal = subtotal + taxValue;
-
-            // Updated innerText to show Rupee symbol
-            document.getElementById('subtotal').innerText = `₹${subtotal.toFixed(2)}`;
-            document.getElementById('grand-total').innerText = `₹${grandTotal.toFixed(2)}`;
-        }
-
-        /**
-         * Updated to strip the Rupee (₹) symbol before sending data to Python
-         */
-        function generateBill() {
-            if (cart.length === 0) return alert("Cart is empty!");
-
-            // CRITICAL: We replace '₹' with empty string to get the pure number
-            let totalText = document.getElementById('grand-total').innerText.replace('₹', '');
-            let totalValue = parseFloat(totalText);
-
-            fetch('/save_bill', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    total: totalValue, 
-                    items: cart,
-                    customer: document.getElementById('cust-name').value,
-                    mode: document.getElementById('pay-mode').value
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Bill Saved Successfully!");
-                    document.getElementById('gen-btn').style.display = 'none';
-                    document.getElementById('after-gen-actions').style.display = 'flex';
-                }
-            });
-        }
-
-        function resetBilling() {
-            window.location.reload();
-        }
-
-        function printReceipt() {
-            if (cart.length === 0) return;
-            const now = new Date();
-            document.getElementById('r-date').innerText = now.toLocaleString();
-            document.getElementById('r-cust-name').innerText = document.getElementById('cust-name').value || "Guest";
-            document.getElementById('r-pay-mode').innerText = document.getElementById('pay-mode').value;
-            const rBody = document.getElementById('receipt-body'); rBody.innerHTML = '';
-            cart.forEach(item => {
-                let discountedPrice = item.price * (1 - (item.discount / 100));
-                // Printing receipt with Rupee symbol
-                rBody.innerHTML += `<tr><td style="padding:4px 0">${item.name}</td><td align="center">${item.qty}</td><td align="right">₹${(discountedPrice * item.qty).toFixed(2)}</td></tr>`;
-            });
-            document.getElementById('r-grand-total').innerText = document.getElementById('grand-total').innerText;
-            window.print();
+        function filterByCategory(cat, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            let cards = document.getElementsByClassName('p-card');
+            for (let c of cards) {
+                let itemCat = c.getAttribute('data-category');
+                c.style.display = (cat === 'All' || itemCat.includes(cat)) ? "block" : "none";
+            }
         }
 
         function filterCards() {
             let input = document.getElementById('billingSearch').value.toLowerCase();
             let cards = document.getElementsByClassName('p-card');
             for (let c of cards) {
-                let name = c.getElementsByTagName('p')[0].innerText.toLowerCase();
+                let name = c.getElementsByTagName('strong')[0].innerText.toLowerCase();
                 c.style.display = name.includes(input) ? "block" : "none";
             }
+        }
+
+        function generateBill() {
+            if (cart.length === 0) return alert("Cart is empty!");
+            fetch('/save_bill', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    total: parseFloat(document.getElementById('grand-total').innerText.replace('₹', '')), 
+                    items: cart, 
+                    customer: document.getElementById('cust-name').value, 
+                    mode: document.getElementById('pay-mode').value 
+                })
+            }).then(r => r.json()).then(data => {
+                alert("Success: Bill Saved!");
+                document.getElementById('gen-btn').style.display = 'none';
+                document.getElementById('after-gen-actions').style.display = 'flex';
+            });
+        }
+
+        function resetBilling() { window.location.reload(); }
+
+        // Change 2: Function signature updated with 'event' and preventDefault() added
+        function printReceipt(event) {
+            if(event) event.preventDefault(); // Stop page from doing an unintended back/reload
+
+            if (cart.length === 0) {
+                alert("Cart is empty!");
+                return;
+            }
+
+            document.getElementById('r-inv-no').innerText = document.getElementById('current-invoice-no').innerText;
+            document.getElementById('r-cust-name').innerText = document.getElementById('cust-name').value || "Guest";
+            document.getElementById('r-pay-mode').innerText = document.getElementById('pay-mode').value;
+            document.getElementById('r-date-time').innerText = new Date().toLocaleString();
+
+            const rBody = document.getElementById('receipt-body');
+            rBody.innerHTML = '';
+            cart.forEach(item => {
+                let dp = item.price * (1 - (item.discount / 100));
+                let finalItemTotal = item.qty * (dp * (1 + item.gst / 100));
+                rBody.innerHTML += `<tr><td style="padding:4px 0">${item.name}</td><td align="center">${item.qty}</td><td align="right">₹${finalItemTotal.toFixed(2)}</td></tr>`;
+            });
+
+            document.getElementById('r-grand-total').innerText = document.getElementById('grand-total').innerText;
+            window.print();
         }
     </script>
 </body>

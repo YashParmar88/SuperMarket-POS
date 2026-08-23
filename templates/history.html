@@ -13,31 +13,31 @@
 <body class="dashboard-page">
 
     <div class="dashboard-wrapper">
-        <!-- 1. Sidebar Section with Role-based Access Control -->
+        <!-- 1. Sidebar Section with Fixed Sequence and Role-based Logic -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <i class="fas fa-shopping-basket"></i>
                 <span>SuperMarket</span>
             </div>
-          <nav class="nav-links">
-    <!-- 1. Dashboard (Admin Only) -->
-    {% if session['role'] == 'Admin' %}
-    <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
-    {% endif %}
+            
+            <nav class="nav-links">
+                <!-- Dashboard link: Only visible to Admin -->
+                {% if session['role'] == 'Admin' %}
+                <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                {% endif %}
 
-    <!-- 2. Products (All) -->
-    <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
+                <!-- General links visible to both Admin and Cashier -->
+                <a href="/products" class="nav-item"><i class="fas fa-box"></i> Products</a>
+                <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
 
-    <!-- 3. Billing (All) -->
-    <a href="/billing" class="nav-item"><i class="fas fa-calculator"></i> Billing Counter</a>
+                <!-- Admin Only: Logged data and BI Reports -->
+                {% if session['role'] == 'Admin' %}
+                <a href="/history" class="nav-item active"><i class="fas fa-history"></i> Sales History</a>
+                <a href="/reports" class="nav-item"><i class="fas fa-chart-line"></i> Inventory Reports</a>
+                <a href="/suppliers" class="nav-item"><i class="fas fa-truck"></i> Supplier Directory</a>
+                {% endif %}
+            </nav>
 
-    <!-- 4. Sales & Reports (Admin Only) -->
-    {% if session['role'] == 'Admin' %}
-    <!-- Sales History is active here -->
-    <a href="/history" class="nav-item active"><i class="fas fa-history"></i> Sales History</a>
-    <a href="/reports" class="nav-item"><i class="fas fa-chart-line"></i> Inventory Reports</a>
-    {% endif %}
-</nav>
             <div class="sidebar-footer">
                 <a href="/logout" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
@@ -78,17 +78,17 @@
                             <th>Date & Time</th>
                             <th>Payment Mode</th>
                             <th>Amount</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Rendering real sales data from SQLite database -->
+                        <!-- Loop through database records and render table rows -->
                         {% for sale in sales %}
                         <tr>
                             <td>#INV-{{ sale['id'] }}</td>
                             <td style="text-transform: capitalize;">{{ sale['customer_name'] }}</td>
                             <td>{{ sale['date_time'] }}</td>
                             <td>
-                                <!-- Dynamic badge color based on payment type -->
                                 <span class="pay-badge 
                                     {% if sale['payment_mode'] == 'Cash' %}cash
                                     {% elif sale['payment_mode'] == 'Card' %}card
@@ -97,6 +97,13 @@
                                 </span>
                             </td>
                             <td><strong>₹{{ "%.2f"|format(sale['total_amount']) }}</strong></td>
+                            <td>
+                                <a href="/delete_sale/{{ sale['id'] }}" 
+                                   onclick="return confirm('Do you want to permanently delete this bill record?')" 
+                                   style="color: #ba1a1a; text-decoration: none;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
