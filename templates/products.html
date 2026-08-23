@@ -9,7 +9,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .products-layout-grid { display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
+        /* NECESSARY CHANGE: Logic to make table full-width for Cashier */
+        .products-layout-grid { 
+            display: grid; 
+            {% if session['role'] == 'Admin' %}
+            grid-template-columns: 360px 1fr; 
+            {% else %}
+            grid-template-columns: 1fr; 
+            {% endif %}
+            gap: 20px; 
+            align-items: start; 
+        }
         
         /* Compact Form Styling */
         .compact-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
@@ -47,7 +57,7 @@
             <nav class="nav-links">
                 <!-- Dashboard (Admin Only) -->
                 {% if session['role'] == 'Admin' %}
-                <a href="/dashboard" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="/dashboard" class="nav-item {% if request.path == '/dashboard' %}active{% endif %}"><i class="fas fa-th-large"></i> Dashboard</a>
                 {% endif %}
 
                 <!-- Products (All) -->
@@ -119,7 +129,6 @@
                             <div class="compact-field"><label>Disc %</label><input type="number" name="discount" value="0"></div>
                             <div class="compact-field">
                                 <label>Category</label>
-                                <!-- Updated comprehensive category list -->
                                 <select name="category">
                                     <option>Grains & Flours</option>
                                     <option>Dals & Pulses</option>
@@ -159,7 +168,7 @@
                             <div style="font-size:11px">{{ item['category'] }}</div>
                             <div><span class="gst-tag">{{ item['gst_percent']|int }}%</span></div>
                             <div style="font-weight:700; color:#003f87">₹{{ item['price'] }}</div>
-                            <div style="font-weight:700">{{ item['stock'] }}</div>
+                            <div style="font-weight:700" class="{% if item['stock'] < 10 %}low-stock-alert{% endif %}">{{ item['stock'] }}</div>
                             <div style="text-align:right">
                                 {% if session['role'] == 'Admin' %}
                                 <a href="/delete_product/{{ item['id'] }}" onclick="return confirm('Delete this product?')" style="color:#ef4444"><i class="fas fa-trash-alt"></i></a>
