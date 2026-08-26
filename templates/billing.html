@@ -12,30 +12,17 @@
     <style>
         /* --- PROFESSIONAL SCROLLABLE CATEGORY BAR --- */
         .category-bar { 
-            display: flex; 
-            gap: 6px; 
-            margin-bottom: 20px; 
-            overflow-x: auto; 
-            padding: 10px 5px;
-            background: #f8fafc;
-            border-radius: 12px;
-            scrollbar-width: thin; 
-            scrollbar-color: #cbd5e1 transparent;
+            display: flex; gap: 6px; margin-bottom: 20px; overflow-x: auto; 
+            padding: 10px 5px; background: #f8fafc; border-radius: 12px;
+            scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
         }
         .category-bar::-webkit-scrollbar { height: 4px; }
         .category-bar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
         .cat-btn { 
-            padding: 6px 14px; 
-            background: white; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 50px; 
-            font-size: 11px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            white-space: nowrap; 
-            transition: 0.3s; 
-            color: #64748b;
+            padding: 6px 14px; background: white; border: 1px solid #e2e8f0; 
+            border-radius: 50px; font-size: 11px; font-weight: 700; 
+            cursor: pointer; white-space: nowrap; transition: 0.3s; color: #64748b;
         }
         .cat-btn:hover, .cat-btn.active { background: #003f87; color: white; border-color: #003f87; box-shadow: 0 4px 10px rgba(0,63,135,0.2); }
 
@@ -121,7 +108,7 @@
                     <div style="display:grid; grid-template-columns: 1fr 100px; gap: 5px; margin-bottom: 15px;">
                         <input type="text" id="cust-name" class="customer-input" placeholder="Customer Name" style="margin:0">
                         <select id="pay-mode" class="customer-input" style="margin:0; font-weight:700; color:#003f87">
-                            <option>Cash</option><option>Online</option><option>Card</option>
+                            <option value="Cash">Cash</option><option value="Online">Online</option><option value="Card">Card</option>
                         </select>
                     </div>
 
@@ -134,7 +121,7 @@
 
                     <div class="summary-box" style="margin-top: 20px; border-top: 1px dashed #ddd; padding-top: 15px;">
                         <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Total Items</span> <strong id="total-qty-count">0</strong></div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>GST Total</span> <strong id="tax-amount">₹0.00</strong></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>Calculated GST</span> <strong id="tax-amount">₹0.00</strong></div>
                         <div style="display:flex; justify-content:space-between; border-top: 1px solid #e2e8f0; padding-top: 10px;">
                             <span style="font-weight: 800;">TOTAL PAYABLE</span>
                             <strong id="grand-total" style="font-size: 22px; color: #003f87; font-weight: 900;">₹0.00</strong>
@@ -144,7 +131,6 @@
                     <div class="bill-actions">
                         <button id="gen-btn" class="btn-complete" onclick="generateBill()">GENERATE BILL <i class="fas fa-check-circle"></i></button>
                         <div id="after-gen-actions" class="post-billing-actions">
-                            <!-- Change 1: Added type="button" and event to onclick -->
                             <button type="button" class="btn-print" onclick="printReceipt(event)"><i class="fas fa-print"></i> Print Receipt</button>
                             <button class="btn-complete" onclick="resetBilling()" style="background: #003f87;">Next Bill</button>
                         </div>
@@ -154,14 +140,60 @@
         </main>
     </div>
 
+    <!-- Final Professional Thermal Receipt Template -->
     <div id="thermal-receipt" class="print-only">
-        <h1 style="text-align: center; font-size: 20px;">SUPERMARKET STORE</h1>
-        <p>INV: <span id="r-inv-no"></span> | CUST: <span id="r-cust-name"></span></p>
-        <p>MODE: <span id="r-pay-mode"></span> | DATE: <span id="r-date-time"></span></p>
-        <hr>
-        <table style="width: 100%; font-size: 12px;" id="receipt-body"></table>
-        <hr>
-        <p style="text-align: right; font-weight: bold; font-size: 16px;">PAID TOTAL: <span id="r-grand-total"></span></p>
+        <div class="receipt-main">
+            <div class="r-header" style="text-align: center;">
+                <h1 style="font-size: 20px; margin-bottom: 5px;">SUPERMARKET STORE</h1>
+                <p style="font-size: 11px; margin: 2px;">123, Business Square, Main Road</p>
+                <p style="font-size: 11px; margin: 2px;">GSTIN: 24AAACX1234Z1Z5</p>
+                <p style="font-size: 11px; margin: 2px;">Tel: +91 98765 43210</p>
+                <p style="margin: 5px 0;">--------------------------------</p>
+                <p style="font-weight: bold; font-size: 14px; margin: 5px 0;">RETAIL INVOICE</p>
+                <p style="margin: 5px 0;">--------------------------------</p>
+            </div>
+
+            <div class="r-meta" style="font-size: 11px; margin: 10px 0;">
+                <div style="display:flex; justify-content: space-between;">
+                    <span>INV: <strong id="r-inv-no"></strong></span>
+                    <span>MODE: <strong id="r-pay-mode"></strong></span>
+                </div>
+                <p style="margin: 3px 0;">CUST: <span id="r-cust-name"></span></p>
+                <p style="margin: 3px 0;">DATE: <span id="r-date-time"></span></p>
+            </div>
+
+            <p style="margin: 5px 0;">--------------------------------</p>
+
+            <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px dashed #000;">
+                        <th align="left" style="padding-bottom: 5px;">ITEM</th>
+                        <th align="center" style="padding-bottom: 5px;">QTY</th>
+                        <th align="right" style="padding-bottom: 5px;">PRICE</th>
+                    </tr>
+                </thead>
+                <tbody id="receipt-body">
+                    <!-- Items will be injected here -->
+                </tbody>
+            </table>
+
+            <p style="margin: 5px 0;">--------------------------------</p>
+
+            <div class="r-totals" style="text-align: right; font-size: 12px; margin-top: 10px;">
+                <p style="margin: 2px 0;">Subtotal: <span id="r-subtotal">₹0.00</span></p>
+                <p style="margin: 2px 0;">GST Amount: <span id="r-tax">₹0.00</span></p>
+                <p style="margin: 5px 0; font-weight: bold;">----------</p>
+                <h2 style="font-size: 16px; font-weight: bold; margin: 5px 0;">NET PAID: <span id="r-grand-total">₹0.00</span></h2>
+            </div>
+
+            <div class="r-footer" style="text-align: center; margin-top: 15px; font-size: 11px;">
+                <p style="margin: 5px 0;">--------------------------------</p>
+                <p>Items Sold: <span id="r-item-count">0</span></p>
+                <p style="margin-top: 10px; font-weight: bold;">*** THANK YOU! VISIT AGAIN ***</p>
+                <p style="font-size: 9px; margin-top: 5px;">Software by: Yash Parmar</p>
+                <div style="margin-top:10px; font-size: 20px; letter-spacing: 2px;">|||| || ||| || ||||</div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -183,6 +215,7 @@
         function updateBillUI() {
             const body = document.getElementById('bill-body'); body.innerHTML = '';
             let subtotal = 0; let totalGST = 0; let totalQty = 0;
+            
             cart.forEach((item) => {
                 let dp = item.price * (1 - (item.discount / 100));
                 let netTotal = dp * item.qty;
@@ -256,29 +289,38 @@
 
         function resetBilling() { window.location.reload(); }
 
-        // Change 2: Function signature updated with 'event' and preventDefault() added
+        // --- ENHANCED PRINT RECEIPT FUNCTION ---
         function printReceipt(event) {
-            if(event) event.preventDefault(); // Stop page from doing an unintended back/reload
+            if(event) event.preventDefault(); 
 
             if (cart.length === 0) {
                 alert("Cart is empty!");
                 return;
             }
 
+            // Populate Receipt Meta Data
             document.getElementById('r-inv-no').innerText = document.getElementById('current-invoice-no').innerText;
             document.getElementById('r-cust-name').innerText = document.getElementById('cust-name').value || "Guest";
             document.getElementById('r-pay-mode').innerText = document.getElementById('pay-mode').value;
             document.getElementById('r-date-time').innerText = new Date().toLocaleString();
 
+            // Populate Receipt Table
             const rBody = document.getElementById('receipt-body');
             rBody.innerHTML = '';
+            let subtotal = 0;
             cart.forEach(item => {
                 let dp = item.price * (1 - (item.discount / 100));
-                let finalItemTotal = item.qty * (dp * (1 + item.gst / 100));
-                rBody.innerHTML += `<tr><td style="padding:4px 0">${item.name}</td><td align="center">${item.qty}</td><td align="right">₹${finalItemTotal.toFixed(2)}</td></tr>`;
+                let lineTotal = dp * item.qty * (1 + item.gst / 100);
+                subtotal += (dp * item.qty);
+                rBody.innerHTML += `<tr><td style="padding:4px 0">${item.name}</td><td align="center">${item.qty}</td><td align="right">₹${lineTotal.toFixed(2)}</td></tr>`;
             });
 
+            // Populate Receipt Totals
+            document.getElementById('r-subtotal').innerText = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('r-tax').innerText = document.getElementById('tax-amount').innerText;
             document.getElementById('r-grand-total').innerText = document.getElementById('grand-total').innerText;
+            document.getElementById('r-item-count').innerText = document.getElementById('total-qty-count').innerText;
+
             window.print();
         }
     </script>

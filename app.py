@@ -147,6 +147,41 @@ def delete_sale(id):
     conn = get_db_connection(); conn.execute('DELETE FROM sales WHERE id = ?', (id,)); conn.commit(); conn.close()
     return redirect(url_for('history'))
 
+# Route 1: To show the Forgot Password page
+@app.route('/forgot')
+def forgot():
+    return render_template('forgot_password.html')
+
+# Route 2: To handle the password reset logic
+@app.route('/reset_password', methods=['POST'])
+def reset_password():
+    # Master Key for security (You can tell this to Sir in Viva)
+    MASTER_SECRET_KEY = "STORE123" 
+
+    username = request.form.get('username')
+    user_secret = request.form.get('secret_key')
+    new_password = request.form.get('new_password')
+
+    # Check if the entered secret key is correct
+    if user_secret == MASTER_SECRET_KEY:
+        conn = get_db_connection()
+        # SQL logic to update the password for the specific user
+        user_check = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        
+        if user_check:
+            conn.execute('UPDATE users SET password = ? WHERE username = ?', (new_password, username))
+            conn.commit()
+            conn.close()
+            flash("Success: Password updated! Now login with new password.")
+            return redirect(url_for('login'))
+        else:
+            conn.close()
+            flash("Error: Username not found in our database.")
+            return redirect(url_for('forgot'))
+    else:
+        flash("Error: Incorrect Secret Master Key!")
+        return redirect(url_for('forgot'))
+
 @app.route('/logout')
 def logout(): session.clear(); return redirect(url_for('login'))
 

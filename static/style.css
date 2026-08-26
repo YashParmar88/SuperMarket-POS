@@ -347,19 +347,62 @@ body.login-page {
 
 .print-only { display: none; }
 
+/* --- New Receipt Print Styling --- */
 @media print {
-    @page { margin: 0; size: auto; }
-    body * { visibility: hidden; }
-    #thermal-receipt, #thermal-receipt * { visibility: visible; }
-    #thermal-receipt {
-        display: block !important; position: absolute; left: 50%; transform: translateX(-50%); top: 10mm;
-        width: 75mm !important; padding: 5mm !important; background: white !important; color: black !important;
-        font-family: 'Courier New', Courier, monospace; border: 1px solid #eee !important;
+    /* 1. Hide browser headers/footers and set page size */
+    @page {
+        margin: 0;
+        size: auto;
     }
-    .receipt-header { text-align: center; margin-bottom: 15px; }
-    .receipt-header h1 { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; }
-    .receipt-header p { font-size: 11px; margin: 0; line-height: 1.4; }
-    .receipt-table { width: 100%; font-size: 12px; margin: 10px 0; }
-    .receipt-table th { border-bottom: 1px dashed #000; padding-bottom: 5px; }
-    .receipt-totals { border-top: 1px dashed #000; padding-top: 10px; text-align: right; }
+
+    /* 2. Hide entire website UI */
+    body * {
+        visibility: hidden;
+    }
+
+    /* 3. Show only the receipt and center it on the paper */
+    #thermal-receipt, #thermal-receipt * {
+        visibility: visible;
+    }
+
+    #thermal-receipt {
+        display: block !important;
+        position: absolute;
+        
+        /* Centering Logic */
+        left: 50%;
+        transform: translateX(-50%);
+        top: 10mm;
+        
+        /* Real Receipt Dimensions */
+        width: 75mm !important; /* Standard POS width */
+        padding: 5mm !important;
+        background: white !important;
+        color: black !important;
+        
+        /* Authentic Receipt Font */
+        font-family: 'Courier New', Courier, monospace; 
+        border: 1px solid #eee !important; /* Very faint border for clean look */
+        line-height: 1.2;
+    }
+
+    /* 4. Receipt Internal Styling for Realism */
+    .r-header { text-align: center; margin-bottom: 10px; }
+    .r-header h1 { font-size: 18px; font-weight: 900; margin: 0; text-transform: uppercase; }
+    .r-header p { font-size: 10px; margin: 2px 0; }
+
+    .r-meta { font-size: 11px; margin: 10px 0; }
+    
+    .r-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    .r-table th { border-bottom: 1px dashed #000; font-size: 11px; padding-bottom: 5px; }
+    .r-table td { font-size: 11px; padding: 3px 0; }
+
+    .r-totals { text-align: right; margin-top: 10px; border-top: 1px dashed #000; padding-top: 8px; }
+    .r-totals p { margin: 2px 0; font-size: 12px; }
+    
+    .r-footer { text-align: center; margin-top: 15px; font-size: 10px; }
+    .r-divider { letter-spacing: -1px; font-weight: bold; margin: 2px 0; }
+    
+    /* Hide scrollbars during print */
+    body { overflow: visible !important; }
 }
